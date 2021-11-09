@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -32,7 +31,7 @@ namespace BinanceApiDataPArser
             var accum = new List<Accum>();
             foreach(var t in accumulation)
                 accum.Add(new Accum("Base", t.Type, "",
-                            new Settings(t.TimeStamp1, t.Price1, t.TimeStamp2,t.Price2)));
+                            new Settings(t.StartTimeStamp, t.LowPrice, t.EndTimeStamp,t.HighPrice)));
 
             var options = new JsonSerializerOptions
             {

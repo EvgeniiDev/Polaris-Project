@@ -6,9 +6,6 @@ using System.Threading.Tasks;
 
 namespace BinanceApiDataPArser
 {
-    class DataTypes
-    {
-    }
     public class CandleOHLC
     {
         public CandleOHLC(long ticks, decimal open, decimal high, decimal low, decimal close)
@@ -29,18 +26,18 @@ namespace BinanceApiDataPArser
     public class Accumulation
     {
         public double VolumeLevel = 0;
-        public long TimeStamp1;
-        public decimal Price1;
-        public long TimeStamp2;
-        public decimal Price2;
+        public long StartTimeStamp;
+        public decimal LowPrice;
+        public long EndTimeStamp;
+        public decimal HighPrice;
         public AccumulationType Type;
 
-        public Accumulation(long timeStamp1, decimal low, long timeStamp2, decimal high, AccumulationType type)
+        public Accumulation(long startTimeStamp, decimal lowPrice, long endTimeStamp, decimal highPrice, AccumulationType type)
         {
-            TimeStamp1 = timeStamp1;
-            Price1 = low;
-            TimeStamp2 = timeStamp2;
-            Price2 = high;
+            StartTimeStamp = startTimeStamp;
+            LowPrice = lowPrice;
+            EndTimeStamp = endTimeStamp;
+            HighPrice = highPrice;
             Type = type;
         }
     }
