@@ -28,6 +28,16 @@ namespace BinanceApiDataParser
                 candles.Add(cndl);
             }
 
+
+            //так создаётся объект накопления первые 2 параметра это левая нижняя точка, оставшиеся 2 правая верхняя
+            var a = new Accumulation(candles[0].TimeStamp, candles[0].Low, candles[5].TimeStamp, candles[5].High);
+
+
+
+
+
+
+
             ////string json = JsonSerializer.Serialize(candles);
             //var options = new JsonSerializerOptions
             //{
@@ -42,6 +52,23 @@ namespace BinanceApiDataParser
             //Console.WriteLine("Data has been saved to file");
 
             Console.ReadKey();
+        }
+    }
+
+    public class Accumulation
+    {
+        double VolumeLevel = 0;
+        long TimeStamp1;
+        decimal Price1;
+        long TimeStamp2;
+        decimal Price2;
+
+        public Accumulation(long timeStamp1, decimal low, long timeStamp2, decimal high)
+        {
+            TimeStamp1 = timeStamp1;
+            Price1 = low;
+            TimeStamp2 = timeStamp2;
+            Price2 = high;
         }
     }
     public class CandleOHLC
