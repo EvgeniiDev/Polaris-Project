@@ -40,6 +40,7 @@ namespace BinanceApiDataPArser
             HighPrice = highPrice;
             Type = type;
         }
+ 
     }
     public enum AccumulationType
     {
@@ -48,5 +49,12 @@ namespace BinanceApiDataPArser
         Сonstriction,
         CompressionUp,
         CompressionDown
+    }
+
+    public enum LineType
+    {
+        Horizontal,
+        Wane,
+        Increase,
     }
 }
