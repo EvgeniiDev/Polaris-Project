@@ -27,11 +27,12 @@ namespace BinanceApiDataPArser
             }
             return candles;
         }
-        public void WriteJson(List<CandleOHLC> candles,List<Accumulation> accumulation, string file) { 
+        public void WriteJson(List<CandleOHLC> candles, List<Accumulation> accumulation, string file)
+        {
             var accum = new List<Accum>();
-            foreach(var t in accumulation)
+            foreach (var t in accumulation)
                 accum.Add(new Accum("Base", t.Type, "",
-                            new Settings(t.StartTimeStamp, t.LowPrice, t.EndTimeStamp,t.HighPrice)));
+                            new Settings(t.StartTimeStamp, t.LowPrice, t.EndTimeStamp, t.HighPrice)));
 
             var options = new JsonSerializerOptions
             {
@@ -39,21 +40,27 @@ namespace BinanceApiDataPArser
             };
 
             if (File.Exists(file)) File.Delete(file);
-                var jsonStringCandlesData = JsonSerializer.Serialize(candles.Select(c =>
-                                                    new[] { c.TimeStamp, c.Open, c.High, c.Low, c.Close }).ToArray(), options);
-                var jsonStringAccumulationData = JsonSerializer.Serialize(accum, options);
-                string pattern = "{\"onchart\": " + jsonStringAccumulationData + 
-                                    ",\"chart\": {\"data\": " + jsonStringCandlesData + "}}";
+            var jsonStringCandlesData = JsonSerializer.Serialize(candles.Select(c =>
+                                                        new[] { c.TimeStamp, c.Open, c.High, c.Low, c.Close }).ToArray(), options);
+            //var jsonStringAccumulationData = JsonSerializer.Serialize(accum, options);
+            var chart = new Dictionary<string, List<decimal[]>>() { { "data", candles
+                                        .Select(c => new[] { c.TimeStamp, c.Open, c.High, c.Low, c.Close }).ToList() } };
+            ;
+            var chartttt = new Dictionary<string, object>() { { "onchart", accum},{ "chart", chart} };
+            var jsonStringAccumulationData = JsonSerializer.Serialize(chartttt, options);
+            ;
+            string pattern = "{\"onchart\": " + jsonStringAccumulationData +
+                                                                        ",\"chart\": {\"data\": " + jsonStringCandlesData + "}}";
 
-                File.WriteAllText(file, pattern);
-            }
+            File.WriteAllText(file, pattern);
         }
     }
+}
 
 
 
 
-    
+
 
 public class Accum
 {
