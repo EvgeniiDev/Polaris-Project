@@ -10,7 +10,7 @@ namespace BinanceApiDataPArser.Data
 {
     class DataExport
     {
-        public static void WriteJson(List<CandleOHLC> candles, List<Accumulation> accumulation, string file)
+        public static void WriteJson(List<CandleOHLC> candles, List<Accumulation> accumulation, string filePath)
         {
             var accum = new List<Accum>();
             foreach (var t in accumulation)
@@ -27,8 +27,8 @@ namespace BinanceApiDataPArser.Data
             var outJsonStruct = new Dictionary<string, object>() { { "onchart", accum }, { "chart", chart } };
             var result = JsonSerializer.Serialize(outJsonStruct, options);
 
-            if (File.Exists(file)) File.Delete(file);
-            File.WriteAllText(file, result);
+            if (File.Exists(filePath)) File.Delete(filePath);
+            File.WriteAllText(filePath, result);
         }
     }
 
