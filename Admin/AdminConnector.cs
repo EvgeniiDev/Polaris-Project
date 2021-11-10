@@ -12,13 +12,17 @@ namespace BinanceApiDataParser.Admin
 {
     class AdminConnector
     {
-        public static void Server()
+        private static string GetMessage(string message)
+        {
+            return "blblblblblblblblblblbllblblblblblblblblb";
+        }
+        public static async void Server()
         {
             var host = WebSocketHostBuilder.Create()
                 .UseWebSocketMessageHandler(
                     async (session, message) =>
                     {
-                        await session.SendAsync(message.Message);
+                        await session.SendAsync(GetMessage(message.Message));
                     }
                 )
                 .ConfigureAppConfiguration((hostCtx, configApp) =>
@@ -26,8 +30,8 @@ namespace BinanceApiDataParser.Admin
                     configApp.AddInMemoryCollection(new Dictionary<string, string>
                     {
                         { "serverOptions:name", "TestServer" },
-                        { "serverOptions:listeners:0:ip", "Any" },
-                        { "serverOptions:listeners:0:port", "4040" }
+                        { "serverOptions:listeners:0:ip", "127.0.0.1" },
+                        { "serverOptions:listeners:0:port", "8080" }
                     });
                 })
                 .ConfigureLogging((hostCtx, loggingBuilder) =>
