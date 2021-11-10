@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Threading.Tasks;
+using BinanceApiDataParser.Admin;
 
 namespace BinanceApiDataParser
 {
@@ -24,6 +25,7 @@ namespace BinanceApiDataParser
 
             DataExport.WriteJson(candles, accumulations, "data.json");
             Console.WriteLine("Data has been saved to file");
+            AdminConnector.Server();
             Console.ReadKey();
         }
 
