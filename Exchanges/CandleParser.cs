@@ -12,7 +12,7 @@ namespace BinanceApiDataPArser
         {
 
             var client = new BinanceClient(new BinanceClientOptions() { });
-            var callResult = await client.Spot.Market.GetKlinesAsync(symbol, interval, start, end);
+            var callResult = await client.Spot.Market.GetKlinesAsync(symbol, interval, start, end,1000);
             var candles = new List<CandleOHLC>();
 
             foreach (var t in callResult.Data)

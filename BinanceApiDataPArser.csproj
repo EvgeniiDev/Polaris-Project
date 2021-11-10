@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Binance.Net" Version="7.2.5" />
+    <PackageReference Include="MySql.Data" Version="8.0.27" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,6 +17,7 @@
     <Folder Include="Strategys\" />
     <Folder Include="Trader\" />
     <Folder Include="StrategyTester\" />
+    <Folder Include="WebClient\" />
   </ItemGroup>
 
 </Project>
