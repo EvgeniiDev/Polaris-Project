@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Binance.Net" Version="7.2.5" />
+    <PackageReference Include="SuperSocket.WebSocket.Server" Version="2.0.0-beta.10" />
   </ItemGroup>
 
   <ItemGroup>
