@@ -1,6 +1,17 @@
 ﻿
+using System.Collections.Generic;
+
 namespace BinanceApiDataPArser
 {
+    public class Graph
+    {
+        public List<CandleOHLC> Candles;
+
+        public Graph(List<CandleOHLC> candles)
+        {
+            Candles = candles;
+        }
+    }
     public class CandleOHLC
     {
         public CandleOHLC(long ticks, decimal open, decimal high, decimal low, decimal close)

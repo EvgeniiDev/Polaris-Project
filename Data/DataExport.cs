@@ -1,5 +1,8 @@
-﻿using System;
+﻿using BinanceApiDataParser.Data;
+using MySql.Data.MySqlClient;
+using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -30,8 +33,84 @@ namespace BinanceApiDataPArser.Data
             if (File.Exists(filePath)) File.Delete(filePath);
             File.WriteAllText(filePath, result);
         }
+
+        public static object GetDataFromDB(DataFromDB dataType)
+        {
+            MySqlConnection conn = MySqlConnector.GetDBConnection();
+            conn.Open();
+            try
+            {
+                return GetPairs(conn);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: " + e);
+                Console.WriteLine(e.StackTrace);
+            }
+            finally
+            {
+                conn.Close();
+                conn.Dispose();
+            }
+            return null;
+        }
+        private static List<Pair> GetPairs(MySqlConnection conn)
+        {
+            string sql = "Select id, nameOfPair from pairs";
+            MySqlCommand cmd = new MySqlCommand();
+            cmd.Connection = conn;
+            cmd.CommandText = sql;
+            var result = new List<Pair>();
+            using (DbDataReader reader = cmd.ExecuteReader())
+            {
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        int idNameOfPair = reader.GetOrdinal("nameOfPair");
+                        string nameOfPair = reader.GetString(idNameOfPair);
+                        result.Add(new Pair(nameOfPair));
+                    }
+                }
+            }
+            return result;
+        }
+
     }
 
+    public class Pair
+    {
+        string Name;
+
+        public Pair(string nameOfPair)
+        {
+            Name = nameOfPair;
+        }
+    }
+
+    public class BalancesHistory
+    {
+        List<BalanceHistory> BalanceHistory;
+    }
+
+    public class BalanceHistory
+    {
+        decimal price;
+    }
+    public enum DataFromDB
+    {
+        GetPairs,
+        GetBalancesHistory,
+        GetCandles,
+        GetPriceGraph
+    }
+    public enum DataInDB
+    {
+        AddPair,
+        AddBalancesHistory,
+        AddCandles,
+        AddPriceGraph
+    }
 
     public class Accum
     {
