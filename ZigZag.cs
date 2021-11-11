@@ -32,12 +32,12 @@ namespace TradeBot
 
         public static List<int> CalculateZigZag(List<Candle> candles, float deviationInPercent)
         {
-            bool swingHigh = false, swingLow = false;
+            var swingHigh = true;
             var obsLow = 0;
             var obsHigh = 0;
             var obsStart = 0;
-            List<int> zigZag = new List<int>();
-            for (int obs = obsStart; obs < candles.Count; obs++)
+            var zigZag = new List<int>();
+            for (var obs = obsStart; obs < candles.Count; obs++)
             {
                 var candlesHighObs = (candles[obs].High + Math.Max(candles[obs].Open, candles[obs].Close)) / 2;
                 var candlesHighObsHigh =
@@ -48,15 +48,14 @@ namespace TradeBot
                 if (candlesHighObs > candlesHighObsHigh)
                 {
                     obsHigh = obs;
-                    if (!swingLow && (((candlesHighObsHigh - candlesLowObsLow) / candlesLowObsLow)) * (decimal) 100F >=
+                    if (swingHigh && (((candlesHighObsHigh - candlesLowObsLow) / candlesLowObsLow)) * (decimal) 100F >=
                         (decimal) deviationInPercent)
                     {
                         zigZag.Add(obsLow);
                         swingHigh = false;
-                        swingLow = true;
                     }
 
-                    if (swingLow) obsLow = obsHigh;
+                    if (!swingHigh) obsLow = obsHigh;
                 }
 
 
@@ -68,7 +67,6 @@ namespace TradeBot
                     {
                         zigZag.Add(obsHigh);
                         swingHigh = true;
-                        swingLow = false;
                     }
 
                     if (swingHigh) obsHigh = obsLow;
