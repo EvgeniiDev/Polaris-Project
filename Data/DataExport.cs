@@ -11,21 +11,43 @@ namespace TradeBot.Data
 {
     class DataExport
     {
-        public static void WriteJson(List<Candle> candles, List<Accumulation> accumulation, string filePath)
+
+
+        //"name": "Line1",
+        //"type": "Segment",
+        //"data": [],
+        //"settings": {
+        //    "p1": [1555732800000, 5405],
+        //    "p2": [1555948800000, 5306],
+        //    "lineWidth": 1,
+        //    "legend": false
+        //}
+
+        public static void WriteJson(List<Candle> candles, List<Accumulation> accumulation, List<Dot> zag, string filePath)
         {
             var accum = new List<Accum>();
             foreach (var t in accumulation)
                 accum.Add(new Accum("Base", t.Type, new string[0],
                             new Settings(t.StartTimeStamp, t.LowPrice, t.EndTimeStamp, t.HighPrice)));
 
+            var chart = new Dictionary<string, List<decimal[]>>() { { "data", candles
+                                        .Select(c => new[] { c.TimeStamp, c.Open, c.High, c.Low, c.Close }).ToList() } };
+
+            var zigzag = new List<Segment>();
+            for (int n=1; n < zag.Count; n++ ){
+                zigzag.Add(new Segment("Line", "", new string[0],
+                            new SegmentSettings(new decimal[] { zag[n - 1].TimeStamp, zag[n - 1].Price },
+                                                new decimal[] { zag[n].TimeStamp, zag[n].Price }, 2,false)));
+            }
+            var output = new List<object>(accum);
+            output.AddRange(zigzag);
+            ;
+            var outJsonStruct = new Dictionary<string, object>() { { "onchart",  output  }, { "chart", chart } };
+            ;
             var options = new JsonSerializerOptions
             {
                 WriteIndented = true,
             };
-
-            var chart = new Dictionary<string, List<decimal[]>>() { { "data", candles
-                                        .Select(c => new[] { c.TimeStamp, c.Open, c.High, c.Low, c.Close }).ToList() } };
-            var outJsonStruct = new Dictionary<string, object>() { { "onchart", accum }, { "chart", chart } };
             var result = JsonSerializer.Serialize(outJsonStruct, options);
 
             if (File.Exists(filePath)) File.Delete(filePath);
@@ -90,7 +112,47 @@ namespace TradeBot.Data
     {
         List<BalanceHistory> BalanceHistory;
     }
+    public class SegmentSettings
+    {
+        [JsonPropertyName("p1")]
+        public decimal[] P1 { get; set; }
+        [JsonPropertyName("p2")]
+        public decimal[] P2 { get; set; }
+        [JsonPropertyName("lineWidth")]
+        public int LineWidth { get; set; }
+        [JsonPropertyName("legend")]
+        public bool Legend { get; set; }
+        [JsonPropertyName("color")]
+        public string Color { get; set; }
 
+        public SegmentSettings(decimal[] p1, decimal[] p2, int lineWidth, bool legend, string color = "#FFC0CB")
+        {
+            P1 = p1;
+            P2 = p2;
+            LineWidth = lineWidth;
+            Legend = legend;
+            Color = color;
+        }
+    }
+    public class Segment
+    {
+       [JsonPropertyName("name")]
+        public string Name { get; set; }
+        [JsonPropertyName("type")]
+        public string Type { get; set; }
+        [JsonPropertyName("data")]
+        public string[] Data { get; set; }
+        [JsonPropertyName("settings")]
+        public SegmentSettings Settings { get; set; }
+
+        public Segment(string name, string type, string[] data, SegmentSettings settings)
+        {
+            Name = name;
+            Type = "Segment";
+            Data = data;
+            Settings = settings;
+        }
+    }
     public class BalanceHistory
     {
         decimal price;
