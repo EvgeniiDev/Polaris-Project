@@ -2,6 +2,17 @@
 
 namespace TradeBot
 {
+    public class Dot
+    {
+        public Dot(long timeStamp, decimal price)
+        {
+            TimeStamp = timeStamp;
+            Price = price;
+        }
+
+        public long TimeStamp;
+        public decimal Price;
+    }
     public class Graph
     {
         public List<Candle> Candles;
