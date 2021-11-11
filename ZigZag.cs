@@ -44,5 +44,17 @@ namespace BinanceApiDataParser
 
             return zigZag;
         }
+
+        public static List<Dot> GetZigZagDot(List<int> zigZag, List<CandleOHLC> candles)
+        {
+            var Dots = new List<Dot>();
+            foreach (var pointer in zigZag)
+            {
+                var dot = new Dot(candles[pointer].TimeStamp, candles[pointer].Open);
+                Dots.Add(dot);
+            }
+
+            return Dots;
+        }
     }
 }
