@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TradeBot
 {
-    public class ZigZag
+    public static class ZigZag
     {
         public static List<Dot> CalculatePriceStructLight(List<Candle> candles, float deviationInPercent)
         {
@@ -11,7 +11,7 @@ namespace TradeBot
             var zigZag = new List<Dot>();
             for (int n = 1; n < candles.Count; n++)
             {
-                var previousCandle = candles[n-1];
+                var previousCandle = candles[n - 1];
                 var currentCandle = candles[n];
                 if (currentCandle.High > previousCandle.High)
                 {
@@ -26,8 +26,10 @@ namespace TradeBot
                     trendUp = false;
                 }
             }
+
             return zigZag;
         }
+
         public static List<int> CalculateZigZag(List<Candle> candles, float deviationInPercent)
         {
             bool swingHigh = false, swingLow = false;
@@ -37,11 +39,17 @@ namespace TradeBot
             List<int> zigZag = new List<int>();
             for (int obs = obsStart; obs < candles.Count; obs++)
             {
-                if ((candles[obs].High + Math.Max(candles[obs].Open, candles[obs].Close) / 2 > (candles[obsHigh].High + Math.Max(candles[obsHigh].Open, candles[obsHigh].Close) / 2)))
+                var candlesHighObs = (candles[obs].High + Math.Max(candles[obs].Open, candles[obs].Close)) / 2;
+                var candlesHighObsHigh =
+                    (candles[obsHigh].High + Math.Max(candles[obsHigh].Open, candles[obsHigh].Close)) / 2;
+                var candlesLowObsLow =
+                    ((candles[obsLow].Low + Math.Min(candles[obsLow].Open, candles[obsLow].Close)) / 2);
+                var candlesLowObs = ((candles[obs].Low + Math.Min(candles[obs].Open, candles[obs].Close)) / 2);
+                if (candlesHighObs > candlesHighObsHigh)
                 {
                     obsHigh = obs;
-                    if (!swingLow &&
-                        ((candles[obsHigh].High+Math.Max(candles[obsHigh].Open,candles[obsHigh].Close)/2 - ((candles[obsLow].Low+Math.Min(candles[obsLow].Open, candles[obsLow].Close))/2) / (candles[obsLow].Low + Math.Min(candles[obsLow].Open, candles[obsLow].Close)) / 2)) * (decimal)100F >= (decimal)deviationInPercent)
+                    if (!swingLow && (((candlesHighObsHigh - candlesLowObsLow) / candlesLowObsLow)) * (decimal) 100F >=
+                        (decimal) deviationInPercent)
                     {
                         zigZag.Add(obsLow);
                         swingHigh = false;
@@ -52,15 +60,11 @@ namespace TradeBot
                 }
 
 
-              
-
-
-                else if (((candles[obs].Low + Math.Min(candles[obs].Open, candles[obs].Close)) / 2) < (candles[obsLow].Low + Math.Min(candles[obsLow].Open, candles[obsLow].Close)) / 2)
+                else if (candlesLowObs < candlesLowObsLow)
                 {
                     obsLow = obs;
-                    if (!swingHigh &&
-                        (((candles[obsHigh].High + Math.Max(candles[obsHigh].Open, candles[obsHigh].Close) / 2 - ((candles[obsLow].Low + Math.Min(candles[obsLow].Open, candles[obsLow].Close)) / 2)) / ((candles[obsLow].Low + Math.Min(candles[obsLow].Open, candles[obsLow].Close)) / 2)) * (decimal)100F >=
-                        (decimal)deviationInPercent))
+                    if (!swingHigh && (((candlesHighObsHigh - candlesLowObsLow) / candlesLowObsLow) * (decimal) 100F >=
+                                       (decimal) deviationInPercent))
                     {
                         zigZag.Add(obsHigh);
                         swingHigh = true;
@@ -91,6 +95,7 @@ namespace TradeBot
                     dot = new Dot(candles[pointer].TimeStamp, candles[pointer].High);
                     lowOrHigh = true;
                 }
+
                 dots.Add(dot);
             }
 
