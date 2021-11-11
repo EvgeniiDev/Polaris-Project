@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TradeBot
 {
-    public static class BoxDetectionAlgoritm
+    public class BoxDetectionAlgoritm
     {
         const decimal differentInPercent = 0.01m;
         const int minCountCandlesForBox = 10;
