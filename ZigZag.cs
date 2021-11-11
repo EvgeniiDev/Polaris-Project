@@ -5,13 +5,14 @@ namespace BinanceApiDataParser
 {
     public class ZigZag
     {
-        public static List<int> CalculateZigZag(List<CandleOHLC> candles, out int obsLow, out int obsHigh, int obsStart,
-            int obsEnd, float deviationInPercent)
+        public static List<int> CalculateZigZag(List<CandleOHLC> candles, float deviationInPercent)
         {
             bool swingHigh = false, swingLow = false;
-            obsLow = obsHigh = obsStart;
+            var obsLow = 0;
+            var obsHigh = 0;
+            var obsStart = 0;
             List<int> zigZag = new List<int>();
-            for (int obs = obsStart; obs <= obsEnd; obs++)
+            for (int obs = obsStart; obs <= candles.Count; obs++)
             {
                 if (candles[obs].High > candles[obsHigh].High)
                 {
