@@ -1,20 +1,20 @@
 ﻿
 using System.Collections.Generic;
 
-namespace BinanceApiDataPArser
+namespace TradeBot
 {
     public class Graph
     {
-        public List<CandleOHLC> Candles;
+        public List<Candle> Candles;
 
-        public Graph(List<CandleOHLC> candles)
+        public Graph(List<Candle> candles)
         {
             Candles = candles;
         }
     }
-    public class CandleOHLC
+    public class Candle
     {
-        public CandleOHLC(long ticks, decimal open, decimal high, decimal low, decimal close)
+        public Candle(long ticks, decimal open, decimal high, decimal low, decimal close)
         {
             TimeStamp = ticks;
             Open = open;

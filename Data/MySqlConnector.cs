@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BinanceApiDataParser.Data
+namespace TradeBot.Data
 {
     class MySqlConnector
     {

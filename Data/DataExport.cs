@@ -1,5 +1,4 @@
-﻿using BinanceApiDataParser.Data;
-using MySql.Data.MySqlClient;
+﻿using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -9,15 +8,15 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace BinanceApiDataPArser.Data
+namespace TradeBot.Data
 {
     class DataExport
     {
-        public static void WriteJson(List<CandleOHLC> candles, List<Accumulation> accumulation, string filePath)
+        public static void WriteJson(List<Candle> candles, List<Accumulation> accumulation, string filePath)
         {
             var accum = new List<Accum>();
             foreach (var t in accumulation)
-                accum.Add(new Accum("Base", t.Type, "",
+                accum.Add(new Accum("Base", t.Type, new string[0],
                             new Settings(t.StartTimeStamp, t.LowPrice, t.EndTimeStamp, t.HighPrice)));
 
             var options = new JsonSerializerOptions
@@ -119,14 +118,14 @@ namespace BinanceApiDataPArser.Data
         [JsonPropertyName("type")]
         public string Type { get; set; }
         [JsonPropertyName("data")]
-        public string Data { get; set; }
+        public string[] Data { get; set; }
         [JsonPropertyName("settings")]
         public Settings Settings { get; set; }
 
-        public Accum(string name, AccumulationType type, string data, Settings settings)
+        public Accum(string name, AccumulationType type, string[] data, Settings settings)
         {
             Name = name;
-            Type = type.ToString();
+            Type = "Square";
             Data = data;
             Settings = settings;
         }
@@ -143,7 +142,7 @@ namespace BinanceApiDataPArser.Data
         public decimal Price2 { get; set; }
         [JsonPropertyName("color")]
         public string Color { get; set; }
-        [JsonPropertyName("zIndex")]
+        [JsonPropertyName("z-index")]
         public int ZIndex { get; set; }
 
         public Settings(long time1, decimal price1, long time2, decimal price2, string color = "#27d588", int zIndex = 0)

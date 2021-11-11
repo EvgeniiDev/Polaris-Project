@@ -8,7 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SuperSocket.WebSocket.Server;
 
-namespace BinanceApiDataParser.Admin
+namespace TradeBot.Admin
 {
     class AdminConnector
     {
