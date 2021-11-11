@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using BinanceApiDataPArser;
 
 namespace BinanceApiDataParser
@@ -20,7 +21,7 @@ namespace BinanceApiDataParser
                     if (!swingLow &&
                         ((candles[obsHigh].High - candles[obsLow].Low) / candles[obsLow].Low) * (decimal) 100F >= (decimal) deviationInPercent)
                     {
-                        zigZag.Add(obsLow); // new swinglow
+                        zigZag.Add(obsLow);
                         swingHigh = false;
                         swingLow = true;
                     }
@@ -49,9 +50,20 @@ namespace BinanceApiDataParser
         public static List<Dot> GetZigZagDot(List<int> zigZag, List<CandleOHLC> candles)
         {
             var Dots = new List<Dot>();
+            bool lowOrHigh = true;
+            Dot dot;
             foreach (var pointer in zigZag)
             {
-                var dot = new Dot(candles[pointer].TimeStamp, candles[pointer].Open);
+                if (lowOrHigh)
+                {
+                    dot = new Dot(candles[pointer].TimeStamp, candles[pointer].Low);
+                    lowOrHigh = false;
+                }
+                else
+                {
+                    dot = new Dot(candles[pointer].TimeStamp, candles[pointer].High);
+                    lowOrHigh = true;
+                }
                 Dots.Add(dot);
             }
 
