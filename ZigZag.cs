@@ -43,8 +43,8 @@ namespace TradeBot
                 var candlesHighObsHigh =
                     (candles[obsHigh].High + Math.Max(candles[obsHigh].Open, candles[obsHigh].Close)) / 2;
                 var candlesLowObsLow =
-                    ((candles[obsLow].Low + Math.Min(candles[obsLow].Open, candles[obsLow].Close)) / 2);
-                var candlesLowObs = ((candles[obs].Low + Math.Min(candles[obs].Open, candles[obs].Close)) / 2);
+                    (candles[obsLow].Low + Math.Min(candles[obsLow].Open, candles[obsLow].Close)) / 2;
+                var candlesLowObs = (candles[obs].Low + Math.Min(candles[obs].Open, candles[obs].Close)) / 2;
                 if (candlesHighObs > candlesHighObsHigh)
                 {
                     obsHigh = obs;
