@@ -37,11 +37,11 @@ namespace TradeBot
             List<int> zigZag = new List<int>();
             for (int obs = obsStart; obs < candles.Count; obs++)
             {
-                if ((candles[obs].High + Math.Max(candles[obs].Open, candles[obs].Close) / 2 > (candles[obsHigh].High + Math.Max(candles[obsHigh].Open, candles[obsHigh].Close) / 2)))
+                if (((candles[obs].High + Math.Max(candles[obs].Open, candles[obs].Close)) / 2) > ((candles[obsHigh].High + Math.Max(candles[obsHigh].Open, candles[obsHigh].Close)) / 2))
                 {
                     obsHigh = obs;
                     if (!swingLow &&
-                        ((candles[obsHigh].High+Math.Max(candles[obsHigh].Open,candles[obsHigh].Close)/2 - ((candles[obsLow].Low+Math.Min(candles[obsLow].Open, candles[obsLow].Close))/2) / (candles[obsLow].Low + Math.Min(candles[obsLow].Open, candles[obsLow].Close)) / 2)) * (decimal)100F >= (decimal)deviationInPercent)
+                        ((((candles[obsHigh].High+Math.Max(candles[obsHigh].Open,candles[obsHigh].Close))/2 - ((candles[obsLow].Low+Math.Min(candles[obsLow].Open, candles[obsLow].Close))/2)) / ((candles[obsLow].Low + Math.Min(candles[obsLow].Open, candles[obsLow].Close)) / 2))) * (decimal)100F >= (decimal)deviationInPercent)
                     {
                         zigZag.Add(obsLow);
                         swingHigh = false;
@@ -59,7 +59,7 @@ namespace TradeBot
                 {
                     obsLow = obs;
                     if (!swingHigh &&
-                        (((candles[obsHigh].High + Math.Max(candles[obsHigh].Open, candles[obsHigh].Close) / 2 - ((candles[obsLow].Low + Math.Min(candles[obsLow].Open, candles[obsLow].Close)) / 2)) / ((candles[obsLow].Low + Math.Min(candles[obsLow].Open, candles[obsLow].Close)) / 2)) * (decimal)100F >=
+                        (((((candles[obsHigh].High + Math.Max(candles[obsHigh].Open, candles[obsHigh].Close)) / 2) - ((candles[obsLow].Low + Math.Min(candles[obsLow].Open, candles[obsLow].Close)) / 2)) / ((candles[obsLow].Low + Math.Min(candles[obsLow].Open, candles[obsLow].Close)) / 2)) * (decimal)100F >=
                         (decimal)deviationInPercent))
                     {
                         zigZag.Add(obsHigh);
