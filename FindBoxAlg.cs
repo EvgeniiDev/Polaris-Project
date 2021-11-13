@@ -7,7 +7,7 @@ namespace TradeBot
     {
         const decimal differentInPercent = 0.01m;
         const int minCountCandlesForBox = 10;
-        const int countTouchOfPrice = 10;
+        const int countTouchOfPrice = 5;
 
         public static List<List<decimal>> FindPointsForLine(List<Candle> candlesPrices)
         {
@@ -18,14 +18,14 @@ namespace TradeBot
 
             for (int i = 0; i < candlesPrices.Count; i++)
             {
-                if (candlesPrices[i].High > firstHighPrice[1])
+                if (candlesPrices[i].High > firstHighPrice[1] && Math.Abs(i - firstHighPrice[0]) > 1)
                     (firstHighPrice, secondHighPrice) = (new List<decimal> { i, candlesPrices[i].High }, firstHighPrice);
-                else if (candlesPrices[i].High > secondHighPrice[1])
+                else if (candlesPrices[i].High > secondHighPrice[1] && Math.Abs(i - secondHighPrice[0]) > 1)
                     secondHighPrice = new List<decimal> { i, candlesPrices[i].High };
 
-                if (candlesPrices[i].Low < firstLowPrice[1])
+                if (candlesPrices[i].Low < firstLowPrice[1] && Math.Abs(i - firstLowPrice[0]) > 1)
                     (firstLowPrice, secondLowPrice) = (new List<decimal> { i, candlesPrices[i].Low }, firstLowPrice);
-                else if (candlesPrices[i].Low < secondHighPrice[1])
+                else if (candlesPrices[i].Low < secondHighPrice[1] && Math.Abs(i - secondLowPrice[0]) > 1)
                     secondLowPrice = new List<decimal> { i, candlesPrices[i].Low };
             }
 
