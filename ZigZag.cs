@@ -26,6 +26,10 @@ namespace TradeBot
                     trendUp = false;
                 }
             }
+            if(zigZag[zigZag.Count-1].Price> candles[candles.Count - 1].High)
+                zigZag.Add(new Dot(candles[candles.Count-1].TimeStamp, candles[candles.Count-1].Low));
+            else
+                zigZag.Add(new Dot(candles[candles.Count - 1].TimeStamp, candles[candles.Count - 1].High));
 
             return zigZag;
         }

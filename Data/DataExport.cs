@@ -41,9 +41,7 @@ namespace TradeBot.Data
             }
             var output = new List<object>(accum);
             output.AddRange(zigzag);
-            ;
             var outJsonStruct = new Dictionary<string, object>() { { "onchart",  output  }, { "chart", chart } };
-            ;
             var options = new JsonSerializerOptions
             {
                 WriteIndented = true,

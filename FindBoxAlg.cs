@@ -5,97 +5,104 @@ namespace TradeBot
 {
     public class BoxDetectionAlgoritm
     {
-        const decimal differentInPercent = 0.01m;
-        const int minCountCandlesForBox = 10;
-        const int countTouchOfPrice = 10;
+        const decimal differentInPercent = 0.04m;
+        const int minCountCandles = 4; // >3
+        const int maxCountCandles = 50; // >2
+        const int minCountTouchOfPrice = 2;
 
-        public static List<List<decimal>> FindPointsForLine(List<Candle> candlesPrices)
+        public static (decimal, decimal) calcFactors(List<Dot> twoDots)
         {
-            var firstHighPrice = new List<decimal>() { 0, 0 }; // index, price
-            var secondHighPrice = new List<decimal>() { 0, 0 };
-            var firstLowPrice = new List<decimal>() { 0, decimal.MaxValue };
-            var secondLowPrice = new List<decimal>() { 0, decimal.MaxValue };
-
-            for (int i = 0; i < candlesPrices.Count; i++)
-            {
-                if (candlesPrices[i].High > firstHighPrice[1])
-                    (firstHighPrice, secondHighPrice) = (new List<decimal> { i, candlesPrices[i].High }, firstHighPrice);
-                else if (candlesPrices[i].High > secondHighPrice[1])
-                    secondHighPrice = new List<decimal> { i, candlesPrices[i].High };
-
-                if (candlesPrices[i].Low < firstLowPrice[1])
-                    (firstLowPrice, secondLowPrice) = (new List<decimal> { i, candlesPrices[i].Low }, firstLowPrice);
-                else if (candlesPrices[i].Low < secondHighPrice[1])
-                    secondLowPrice = new List<decimal> { i, candlesPrices[i].Low };
-            }
-
-            return new List<List<decimal>> { firstHighPrice, secondHighPrice, firstLowPrice, secondLowPrice };
+            if (twoDots[1].TimeStamp - twoDots[0].TimeStamp == 0)
+                return (0,twoDots[0].Price);
+            return ((twoDots[0].Price - twoDots[1].Price) / (twoDots[1].TimeStamp - twoDots[0].TimeStamp),
+                (twoDots[0].TimeStamp * twoDots[1].Price - twoDots[1].TimeStamp * twoDots[0].Price) / (twoDots[1].TimeStamp - twoDots[0].TimeStamp));
         }
-
-        public static bool Touch(int x, decimal y, decimal x1, decimal x2, decimal y1, decimal y2)
+        public static int CountTouches(List<Dot> maxs, List<Dot> dots, Direction dir)
         {
-            var a = y1 - y2;
-            var b = x2 - x1;
-            var c = x1 * y2 - x2 * y1;
+            (decimal factorA, decimal factorB) = calcFactors(maxs);
+            bool trendUp = dots[1].Price > dots[0].Price;
+            int touchCount = 0;
             decimal expectedPrice;
-
-            expectedPrice = (x2 * y1 - x1 * y2 - a * x) / b;
-
-            var priceDelta = Math.Abs(expectedPrice - y);
-            if (priceDelta <= differentInPercent * expectedPrice)
-                return true;
-            return false;
-        }
-
-        public static List<Accumulation> FindBoxes(List<Candle> candles)
-        {
-            var countCandles = candles.Count;
-            var theLastPossibleStartOfBox = countCandles - minCountCandlesForBox + 1;
-            var boxes = new List<Accumulation>();
-
-            for (int i = 0; i < theLastPossibleStartOfBox; i++)
+            for (int i = 0; i < dots.Count; i++)
             {
-                for (int j = i + minCountCandlesForBox - 1; j < theLastPossibleStartOfBox; j++)
+                if (i % 2 == (trendUp == (dir == Direction.Up) ? 1 : 0))
                 {
-                    var section = candles.GetRange(i, j - i);
-
-                    var sectionLength = section.Count;
-
-                    var bottomWick = new List<decimal>();
-                    var upperWick = new List<decimal>();
-
-                    for (var k = 0; k < sectionLength; k++)
-                    {
-                        bottomWick.Add(candles[k].Low);
-                        upperWick.Add(candles[k].High);
-                    }
-
-                    var candlesForLines = FindPointsForLine(section);
-                    var firstHith = candlesForLines[0]; // Index and Price
-                    var secondHith = candlesForLines[1];
-                    var firstLow = candlesForLines[2];
-                    var secondLow = candlesForLines[3];
-
-
-                    var countTouchHigh = 0;
-                    var countTouchLow = 0;
-
-                    for (int indexCandle = 0; indexCandle < sectionLength; indexCandle++)
-                    {
-                        if (indexCandle != firstHith[0] && indexCandle != secondHith[0] &&
-                            Touch(indexCandle, section[indexCandle].High, firstHith[0], secondHith[0], firstHith[1], secondHith[1]))
-                            countTouchHigh++;
-                        if (indexCandle != firstLow[0] && indexCandle != secondLow[0] &&
-                            Touch(indexCandle, section[indexCandle].Low, firstLow[0], secondLow[0], firstLow[1], secondLow[1]))
-                            countTouchLow++;
-                    }
-
-                    if (countTouchHigh > countTouchOfPrice && countTouchLow > countTouchOfPrice)
-                        boxes.Add(new Accumulation(candles[i].TimeStamp, candles[i].Low,
-                            candles[j].TimeStamp, candles[j].High, AccumulationType.Rectangle));
+                    expectedPrice = -dots[i].TimeStamp * factorA - factorB;
+                    var priceDelta = Math.Abs(expectedPrice - dots[i].Price);
+                    if (priceDelta <= differentInPercent * expectedPrice)
+                        touchCount++;
                 }
             }
+            return touchCount;
+        }
+
+        //TODO interface
+        public static List<Accumulation> FindBoxes(List<Dot> zigZag)
+        {
+            var boxes = new List<Accumulation>();
+            for (int i = 0; i < zigZag.Count; i++)
+            {
+                var lastBox = new Accumulation(0,0,0,0,0);
+                for (int j = i + minCountCandles; j < Math.Min(zigZag.Count, i + maxCountCandles); j++)
+                {
+                    var section = zigZag.GetRange(i, j - i);
+                    if (isAccum(section))
+                       lastBox = (new Accumulation(section[0].TimeStamp, section[0].Price,
+                           section[section.Count - 1].TimeStamp, section[section.Count - 1].Price, AccumulationType.Rectangle));
+                }
+                if (lastBox.EndTimeStamp!=0)
+                    boxes.Add(lastBox);
+            }
             return boxes;
+        }
+
+        private static bool isAccum(List<Dot> section)
+        {
+            (var lowDots, var highDots) = GetTwoMaxsAndMins(section);
+            var upTouches = CountTouches(highDots, section, Direction.Up);
+            var downTouches = CountTouches(lowDots, section, Direction.Down);
+            return minCountTouchOfPrice <= downTouches && minCountTouchOfPrice <= upTouches;
+        }
+
+        public static (List<Dot>, List<Dot>) GetTwoMaxsAndMins(List<Dot> dots)
+        {
+            var highDots = new List<Dot>() { { new Dot(0, 0) }, { new Dot(0, 0) } }; // firstMax, secondMax
+            var lowDots = new List<Dot>() { { new Dot(0, decimal.MaxValue) }, { new Dot(0, decimal.MaxValue) } };
+            bool trendUp = dots[1].Price > dots[0].Price;
+            for (int i = 0; i < dots.Count; i++)
+            {
+                if (i % 2 == (trendUp == true ? 1 : 0))
+                {
+                    //high dots
+                    if (dots[i].Price >= highDots[0].Price)
+                    {
+                        highDots[1] = highDots[0];
+                        highDots[0] = dots[i];
+                    }
+                    else if (dots[i].Price > highDots[1].Price)
+                        highDots[1] = dots[i];
+                }
+                else
+                {
+                    //low dots
+                    if (dots[i].Price <= lowDots[0].Price)
+                    {
+                        lowDots[1] = lowDots[0];
+                        lowDots[0] = dots[i];
+                    }
+                    else if (dots[i].Price < lowDots[1].Price)
+                        lowDots[1] = dots[i];
+                }
+            }
+            if (lowDots[1].TimeStamp == 0) lowDots[1] = lowDots[0];
+            if (highDots[1].TimeStamp == 0) highDots[1] = highDots[0];
+
+            return (lowDots,highDots);
+        }
+        public enum Direction
+        {
+            Up,
+            Down
         }
     }
 }
