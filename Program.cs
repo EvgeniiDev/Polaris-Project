@@ -12,20 +12,20 @@ namespace TradeBot
         {
             var dataParser = new DataParser();
             var candles = await dataParser.GetCandles("ETHUSDT", Binance.Net.Enums.KlineInterval.OneDay,
-                                                new DateTime(2021, 5, 19), new DateTime(2021, 10, 1));
+                                                new DateTime(2021, 7, 19), new DateTime(2021, 11, 1));
 
 
             var candless = new List<Candle>();
-            var zigzag = ZigZag.CalculatePriceStructLight(candles,1);
+            var zigzag = ZigZag.CalculatePriceStructLight(candles, 1);
             //var zigzag = ZigZag.GetZigZagDot(ZigZag.CalculateZigZag(candles,50), candles);
             ;
             var accumulations = BoxDetectionAlgoritm2.FindBoxes(candles).ToList();
             ;
-            DataExport.WriteJson(candles, accumulations,zigzag, @"C:\Users\user\Desktop\tvjs-xp-main\src\apps\data.json");
+            DataExport.WriteJson(candles, accumulations, zigzag, @"C:\Users\user\Desktop\tvjs-xp-main\src\apps\data.json");
             Console.WriteLine("Data has been saved to file");
             //AdminConnector.Server();
             Console.ReadKey();
-        }
 
+        }
     }
 }

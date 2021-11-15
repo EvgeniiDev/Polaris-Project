@@ -6,12 +6,12 @@ namespace TradeBot
 {
     public class BoxDetectionAlgoritm2
     {
-        const decimal differentInPercent = 0.035m;
-        const int minAmountCandles = 3; // >3
-        const int maxAmountCandles = 30; // >2
-        const int minCountTouchOfPrice = 3;
-        const int minAmountOfCombinations = 2;
-        const decimal StableFactor = 0.19m;
+        const decimal differentInPercent = 0.0375m;
+        const int minAmountCandles = 5; // >3
+        const int maxAmountCandles = 15; // >2
+        const int minCountTouchOfPrice = 2;
+        const int minAmountOfCombinations = 1;
+        const decimal StableFactor = 0.3m;
         public static (decimal, decimal) calcFactors(List<Dot> twoDots)
         {
             if (twoDots[1].TimeStamp - twoDots[0].TimeStamp == 0)
@@ -21,8 +21,8 @@ namespace TradeBot
         }
         public static List<Dot> GetTouches(List<Dot> border, List<Candle> dots, Direction dir)
         {
-            (decimal factorA, decimal factorB) = (0,-border[1].Price);
-            //(decimal factorA, decimal factorB) = calcFactors(maxs);
+            //(decimal factorA, decimal factorB) = (0,-border[1].Price);
+            (decimal factorA, decimal factorB) = calcFactors(border);
             var touches = new List<Dot>() { new Dot(0,0)};
             for (int i = 0; i < dots.Count; i++)
             {
@@ -59,23 +59,27 @@ namespace TradeBot
             var boxes = new List<Accumulation>();
             for (int i = 0; i < zigZag.Count; i++)
             {
-                //var lastBox = new Accumulation(0,0,0,0,0);
+                var lastBox = new Accumulation(0,0,0,0,0);
                 for (int j = i + minAmountCandles; j < Math.Min(zigZag.Count, i + maxAmountCandles+1); j++)
                 {
-                    var section = zigZag.GetRange(i, j - i);
+                    var section = zigZag.GetRange(i, j - i+1);
                     if (isAccum(section))
                     {
-                        //lastBox = (new Accumulation(a[0].TimeStamp, a[0].Price,
-                        //  a[section.Count - 1].TimeStamp, a[section.Count - 1].Price, AccumulationType.Rectangle));
-                        ExtendBox(zigZag, section);
                         var a = section.OrderBy(x => x.High).ToList();
                         var b = section.OrderBy(x => x.Low).ToList();
-                        boxes.Add(new Accumulation(section[0].TimeStamp, b[0].Low,
+                        lastBox = (new Accumulation(section[0].TimeStamp, b[0].Low,
                                     section[a.Count - 1].TimeStamp, a[a.Count - 1].High, AccumulationType.Rectangle));
+                        //ExtendBox(zigZag, section);
+                        //boxes.Add(new Accumulation(section[0].TimeStamp, b[0].Low,
+                        //            section[a.Count - 1].TimeStamp, a[a.Count - 1].High, AccumulationType.Rectangle));
+  
                     }
                 }
-                //if (lastBox.EndTimeStamp!=0)
-                   // boxes.Add(lastBox);
+                if (lastBox.EndTimeStamp != 0)
+                {
+                    boxes.Add(lastBox);
+                    i += minAmountCandles;
+                }
             }
             return boxes;
         }
@@ -154,16 +158,12 @@ namespace TradeBot
             }
         }
         public static decimal GetMedian(List<decimal> sourceNumbers)
-        {
-            //Framework 2.0 version of this method. there is an easier way in F4        
+        {    
             if (sourceNumbers == null || sourceNumbers.Count == 0)
                 throw new System.Exception("Median of empty array not defined.");
 
-            //make sure the list is sorted, but use a new array
             var sortedPNumbers = new List<decimal>(sourceNumbers);
             sortedPNumbers.Sort();
-
-            //get the median
             int size = sortedPNumbers.Count;
             int mid = size / 2;
             decimal median = (size % 2 != 0) ? (decimal)sortedPNumbers[mid] : 
