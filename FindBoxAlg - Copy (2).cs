@@ -6,8 +6,8 @@ namespace TradeBot
 {
     public class BoxDetectionAlgoritm2
     {
-        const decimal differentInPercent = 0.0375m;
-        const int minAmountCandles = 5; // >3
+        const decimal differentInPercent = 0.04m;
+        const int minAmountCandles = 4; // >3
         const int maxAmountCandles = 15; // >2
         const int minCountTouchOfPrice = 2;
         const int minAmountOfCombinations = 1;
@@ -19,18 +19,17 @@ namespace TradeBot
             return ((twoDots[0].Price - twoDots[1].Price) / (twoDots[1].TimeStamp - twoDots[0].TimeStamp),
                 (twoDots[0].TimeStamp * twoDots[1].Price - twoDots[1].TimeStamp * twoDots[0].Price) / (twoDots[1].TimeStamp - twoDots[0].TimeStamp));
         }
-        public static List<Dot> GetTouches(List<Dot> border, List<Candle> dots, Direction dir)
+        public static List<Dot> GetTouches(Dot border, List<Candle> dots, Direction dir)
         {
-            //(decimal factorA, decimal factorB) = (0,-border[1].Price);
-            (decimal factorA, decimal factorB) = calcFactors(border);
+            ;
+            decimal factorB = border.Price;
             var touches = new List<Dot>() { new Dot(0,0)};
             for (int i = 0; i < dots.Count; i++)
             {
                 if (dir == Direction.Up)
                 {
-                    var expectedPrice = -dots[i].TimeStamp * factorA - factorB;
+                    var expectedPrice = factorB;
                     var priceDelta = Math.Abs(expectedPrice - dots[i].High);
-
                     if (priceDelta <= differentInPercent * expectedPrice
                         && (-touches.Last().TimeStamp + dots[i].TimeStamp) >= 86400000*3)
                     {
@@ -39,14 +38,15 @@ namespace TradeBot
                 }
                 else
                 {
-                    var expectedPrice = -dots[i].TimeStamp * factorA - factorB;
+
+                    var expectedPrice = factorB;
                     var priceDelta = Math.Abs(expectedPrice - dots[i].Low);
                     if (priceDelta <= differentInPercent * expectedPrice
                         && (-touches.Last().TimeStamp + dots[i].TimeStamp) >= 86400000*3)
                     {
                         touches.Add(new Dot(dots[i].TimeStamp, dots[i].Low));
                     }
-
+                    ;
                 }
                 
             }
@@ -86,7 +86,7 @@ namespace TradeBot
         
         private static bool isAccum(List<Candle> section)
         {
-            (var lowDots, var highDots) = GetTwoMaxsAndMins(section);
+            (var lowDots, var highDots) = GetMaxsAndMins(section);
             var upTouches = GetTouches(highDots, section, Direction.Up);
             var downTouches = GetTouches(lowDots, section, Direction.Down);
             var combinations = 0;
@@ -170,12 +170,13 @@ namespace TradeBot
                                 ((decimal)sortedPNumbers[mid] + (decimal)sortedPNumbers[mid - 1]) / 2;
             return median;
         }
-        public static (List<Dot>, List<Dot>) GetTwoMaxsAndMins(List<Candle> dots)
+        public static (Dot, Dot) GetMaxsAndMins(List<Candle> dots)
         {
+            ;
             var a = dots.OrderBy(x => x.High).ToList();
-            var highDots = new List<Dot>() { { new Dot(a[a.Count() - 2].TimeStamp,a[a.Count()-2].High) },{ new Dot(a[a.Count() - 2].TimeStamp, a[a.Count() - 1].High) } }; // firstMax, secondMax
-            var b = dots.OrderBy(x => x.High).ToList();
-            var lowDots = new List<Dot>() { { new Dot(b[b.Count() - 2].TimeStamp, b[0].Low) }, { new Dot(b[b.Count() - 2].TimeStamp, b[1].Low) } };
+            var highDots = new Dot(a.Last().TimeStamp, a.Last().High); // firstMax, secondMax
+            var b = dots.OrderBy(x => x.Low).ToList();
+            var lowDots = new Dot(b.First().TimeStamp, b.First().Low);
             return (lowDots,highDots);
         }
 
