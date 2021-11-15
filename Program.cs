@@ -19,9 +19,9 @@ namespace TradeBot
             var zigzag = ZigZag.CalculatePriceStructLight(candles,1);
             //var zigzag = ZigZag.GetZigZagDot(ZigZag.CalculateZigZag(candles,50), candles);
             ;
-            var accumulations = new List<Accumulation>();// BoxDetectionAlgoritm.FindBoxes(zigzag).ToList();
+            var accumulations = BoxDetectionAlgoritm2.FindBoxes(candles).ToList();
             ;
-            DataExport.WriteJson(candles, accumulations,zigzag, "data.json");
+            DataExport.WriteJson(candles, accumulations,zigzag, @"C:\Users\user\Desktop\tvjs-xp-main\src\apps\data.json");
             Console.WriteLine("Data has been saved to file");
             //AdminConnector.Server();
             Console.ReadKey();
