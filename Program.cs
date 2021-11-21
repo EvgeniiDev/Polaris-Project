@@ -12,7 +12,7 @@ namespace TradeBot
         {
             var dataParser = new DataParser();
             var candles = await dataParser.GetCandles("ETHUSDT", Binance.Net.Enums.KlineInterval.OneDay,
-                                                new DateTime(2020, 2, 1), new DateTime(2021, 11, 9));
+                                                new DateTime(2021, 2, 1), new DateTime(2021, 11, 9));
 
 
             var candless = new List<Candle>();

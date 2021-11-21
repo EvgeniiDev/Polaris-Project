@@ -6,10 +6,10 @@ namespace TradeBot
 {
     public class BoxDetectionAlgoritm2
     {
-        const decimal differentInPercent = 0.04m;
+        const decimal differentInPercent = 0.05m;
         const int minAmountCandles = 4; // >3
         const int maxAmountCandles = 15; // >2
-        const int minCountTouchOfPrice = 2;
+        const int minCountTouchOfPrice = 3;
         const int minAmountOfCombinations = 1;
         const decimal StableFactor = 0.3m;
         public static (decimal, decimal) calcFactors(List<Dot> twoDots)
@@ -31,7 +31,7 @@ namespace TradeBot
                     var expectedPrice = factorB;
                     var priceDelta = Math.Abs(expectedPrice - dots[i].High);
                     if (priceDelta <= differentInPercent * expectedPrice
-                        && (-touches.Last().TimeStamp + dots[i].TimeStamp) >= 86400000*3)
+                        && (-touches.Last().TimeStamp + dots[i].TimeStamp) >= 86400000*2)
                     {
                         touches.Add(new Dot(dots[i].TimeStamp, dots[i].High));
                     }
@@ -42,7 +42,7 @@ namespace TradeBot
                     var expectedPrice = factorB;
                     var priceDelta = Math.Abs(expectedPrice - dots[i].Low);
                     if (priceDelta <= differentInPercent * expectedPrice
-                        && (-touches.Last().TimeStamp + dots[i].TimeStamp) >= 86400000*3)
+                        && (-touches.Last().TimeStamp + dots[i].TimeStamp) >= 86400000*2)
                     {
                         touches.Add(new Dot(dots[i].TimeStamp, dots[i].Low));
                     }
@@ -63,6 +63,9 @@ namespace TradeBot
                 for (int j = i + minAmountCandles; j < Math.Min(zigZag.Count, i + maxAmountCandles+1); j++)
                 {
                     var section = zigZag.GetRange(i, j - i+1);
+
+                    //var section = ZigZag.CalculatePriceStructLight(candles.Result, 1);
+                    ;
                     if (isAccum(section))
                     {
                         var a = section.OrderBy(x => x.High).ToList();
@@ -124,7 +127,6 @@ namespace TradeBot
                 maxMedian = Math.Max(maxMedian, t.High - t.Close);
             }
             var median = GetMedian(medianDelta);
-            Console.WriteLine(median);
             return maxMedian*StableFactor< median;
         }
 
@@ -174,9 +176,9 @@ namespace TradeBot
         {
             ;
             var a = dots.OrderBy(x => x.High).ToList();
-            var highDots = new Dot(a.Last().TimeStamp, a.Last().High); // firstMax, secondMax
+            var highDots = new Dot(a[a.Count - 1].TimeStamp, a[a.Count-1].High); // firstMax, secondMax
             var b = dots.OrderBy(x => x.Low).ToList();
-            var lowDots = new Dot(b.First().TimeStamp, b.First().Low);
+            var lowDots = new Dot(b[0].TimeStamp, b[0].Low);
             return (lowDots,highDots);
         }
 
