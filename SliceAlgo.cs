@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace TradeBot
 {
-    public class BoxDetectionAlgoritm2
+    public class SliceAlgorithm
     {
         const decimal differentInPercent = 0.05m;
         const int minAmountCandles = 4; // >3
@@ -59,72 +59,105 @@ namespace TradeBot
             var boxes = new List<Accumulation>();
             for (int i = 0; i < zigZag.Count; i++)
             {
-                var lastBox = new Accumulation(0,0,0,0,0);
-                for (int j = i + minAmountCandles; j < Math.Min(zigZag.Count, i + maxAmountCandles+1); j++)
+                var lastBox = new Accumulation(0, 0, 0, 0, 0);
+                for (int j = i + minAmountCandles; j < Math.Min(zigZag.Count, i + maxAmountCandles); j++)
                 {
-                    var section = zigZag.GetRange(i, j - i+1);
-
-                    //var section = ZigZag.CalculatePriceStructLight(candles.Result, 1);
-                    ;
-                    if (isAccum(section))
+                    var section = zigZag.GetRange(i, j - i);
+                    var y = isAccum(section);
+                    if (y.Item1)
                     {
-                        var a = section.OrderBy(x => x.High).ToList();
-                        var b = section.OrderBy(x => x.Low).ToList();
-                        lastBox = (new Accumulation(section[0].TimeStamp, b[0].Low,
-                                    section[a.Count - 1].TimeStamp, a[a.Count - 1].High, AccumulationType.Rectangle));
-                        ExtendBox(zigZag, section);
-                        //boxes.Add(new Accumulation(section[0].TimeStamp, b[0].Low,
-                        //            section[a.Count - 1].TimeStamp, a[a.Count - 1].High, AccumulationType.Rectangle));
-  
+
+
+                        lastBox = (new Accumulation(section[0].TimeStamp, y.Item2,
+                            section[section.Count - 1].TimeStamp, y.Item3, AccumulationType.Rectangle));
+
                     }
                 }
-                if (lastBox.EndTimeStamp != 0)
-                {
+
+                if (lastBox.EndTimeStamp != 0 
+                    && !boxes.Select(x=>x.EndTimeStamp).Contains(lastBox.EndTimeStamp))
                     boxes.Add(lastBox);
-                    i += minAmountCandles;
-                }
             }
             return boxes;
         }
-        private static bool isAccum(List<Candle> section)
+        private static (bool,decimal,decimal) isAccum(List<Candle> section)
+        {
+            const int resolution = 40;
+            (Dot ATL, Dot ATH) = GetMaxsAndMins(section);
+            decimal delta = (ATH.Price - ATL.Price) / (resolution - 1);
+            var list = new int[resolution];
+
+            foreach (var candle in section)
+            {
+                int startN = (int)((candle.Low - ATL.Price) / delta);
+                int endN = (int)((candle.High - ATL.Price) / delta);
+                for (int step = startN; step <= endN; step++)
+                    list[step] += 1;
+                startN = (int)((Math.Min(candle.Open, candle.Close) - ATL.Price) / delta);
+                endN = (int)((Math.Max(candle.Open, candle.Close) - ATL.Price) / delta);
+                for (int step = startN; step <= endN; step++)
+                    list[step] += 1;
+                ;
+            }
+            var median = midArifm(list.Select(x => (decimal)x).ToList());
+            var box = new List<decimal>();
+            for (var a = 0; a < list.Length; a++)
+            {
+                if (list[a] >= median)
+                    box.Add(a * delta+ ATL.Price);
+            }
+
+
+
+            return (
+                checkProjectionOfBox(0.8m,section)
+                && IsStable(section) 
+                && checkSquareOfBox(0.375m, section)
+                , box.Min(),box.Max());
+        }
+        private static bool checkProjectionOfBox(decimal kFactor, List<Candle> section)
+        {
+            const int resolution = 40;
+            (Dot ATL, Dot ATH) = GetMaxsAndMins(section);
+            decimal delta = (ATH.Price - ATL.Price) / (resolution - 1);
+            var list = new int[resolution];
+
+            foreach (var candle in section)
+            {
+                int startN = (int)((candle.Low - ATL.Price) / delta);
+                int endN = (int)((candle.High - ATL.Price) / delta);
+                for (int step = startN; step <= endN; step++)
+                    list[step] += 1;
+                startN = (int)((Math.Min(candle.Open, candle.Close) - ATL.Price) / delta);
+                endN = (int)((Math.Max(candle.Open, candle.Close) - ATL.Price) / delta);
+                for (int step = startN; step <= endN; step++)
+                    list[step] += 1;
+                ;
+            }
+            var median = midArifm(list.Select(x => (decimal)x).ToList());
+            var box = new List<decimal>();
+            for (var a = 0; a < list.Length; a++)
+            {
+                if (list[a] >= median)
+                    box.Add(a * delta + ATL.Price);
+            }
+            return resolution * kFactor >= box.Count();
+        }
+        private static bool checkSquareOfBox(decimal kFactor, List<Candle> section)
         {
             var sectionSquare = (section.Select(x => x.High).Max() - section.Select(x => x.Low).Min()) * (section.Count);
             var candlesSquare = 0m;
             foreach (var t in section)
+            {
+                //candlesSquare += (Math.Abs(t.Open - t.Close)*0.4m + Math.Abs(t.High - t.Low) *0.6m);
                 candlesSquare += (Math.Abs(t.Open - t.Close) + Math.Abs(t.High - t.Low)) / 2;
-
-            return candlesSquare >= sectionSquare * 0.4m;
+            }
+            return candlesSquare >= sectionSquare * kFactor;
         }
-        //private static bool isAccum(List<Candle> section)
-        //{
-        //    (var lowDots, var highDots) = GetMaxsAndMins(section);
-        //    var upTouches = GetTouches(highDots, section, Direction.Up);
-        //    var downTouches = GetTouches(lowDots, section, Direction.Down);
-        //    var combinations = 0;
-        //    if (upTouches.Count > downTouches.Count)
-        //    {
-        //        for(int n =1; n < upTouches.Count; n++)
-        //        {
-        //            foreach (var d in downTouches)
-        //                if (upTouches[n - 1].TimeStamp < d.TimeStamp && d.TimeStamp < upTouches[n].TimeStamp)
-        //                    combinations++;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        for (int n = 1; n < downTouches.Count; n++)
-        //        {
-        //            foreach (var d in upTouches)
-        //                if (downTouches[n - 1].TimeStamp < d.TimeStamp && d.TimeStamp < downTouches[n].TimeStamp)
-        //                    combinations++;
-        //        }
-        //    }
-        //    return minCountTouchOfPrice <= downTouches.Count
-        //            && minCountTouchOfPrice <= upTouches.Count
-        //            && minAmountOfCombinations <= combinations
-        //            && IsStable(section);
-        //}
-
+        public static decimal midArifm(List<decimal> sourceNumbers)
+        {
+            return sourceNumbers.Sum()/sourceNumbers.Count;
+        }
         private static bool IsStable(List<Candle> section)
         {
             var medianDelta = new List<decimal>();
@@ -137,7 +170,6 @@ namespace TradeBot
             var median = GetMedian(medianDelta);
             return maxMedian*StableFactor< median;
         }
-
         private static void ExtendBox(List<Candle> zigZag, List<Candle> section)
         {
             var a = section.OrderBy(x => x.High).ToList();
@@ -189,7 +221,6 @@ namespace TradeBot
             var lowDots = new Dot(b[0].TimeStamp, b[0].Low);
             return (lowDots,highDots);
         }
-
         public enum Direction
         {
             Up,

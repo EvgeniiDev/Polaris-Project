@@ -8,7 +8,7 @@ namespace TradeBot
     {
         const decimal differentInPercent = 0.05m;
         const int minCountCandles = 4; // >3
-        const int maxCountCandles = 20;// >2
+        const int maxCountCandles = 15;// >2
         const int minCountTouchOfPrice = 2;
 
         public static (decimal, decimal) calcFactors(List<Dot> twoDots)
