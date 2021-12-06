@@ -8,11 +8,11 @@ namespace TradeBot
 {
     class DataParser
     {
-        public async Task<List<Candle>> GetCandles(string symbol, Binance.Net.Enums.KlineInterval interval, DateTime start, DateTime end)
+        public async Task<List<Candle>> GetCandles(string pair, Binance.Net.Enums.KlineInterval timeFrame, DateTime start, DateTime end)
         {
 
             var client = new BinanceClient(new BinanceClientOptions() { });
-            var callResult = await client.Spot.Market.GetKlinesAsync(symbol, interval, start, end,1000);
+            var callResult = await client.Spot.Market.GetKlinesAsync(pair, timeFrame, start, end);
             var candles = new List<Candle>();
 
             foreach (var t in callResult.Data)
@@ -24,7 +24,8 @@ namespace TradeBot
             }
             return candles;
         }
-   
+
+
     }
 }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace TradeBot
 {
@@ -34,13 +35,14 @@ namespace TradeBot
             return zigZag;
         }
 
-        public static List<int> CalculateZigZag(List<Candle> candles, float deviationInPercent)
+        public static List<Dot> CalculateZigZag(List<Candle> candles, float deviationInPercent)
         {
+            candles = candles.Where(x => x != null).ToList();
             bool swingHigh = false, swingLow = false;
             var obsLow = 0;
             var obsHigh = 0;
             var obsStart = 0;
-            List<int> zigZag = new List<int>();
+            var zigZag = new List<Dot>();
             for (int obs = obsStart; obs < candles.Count; obs++)
             {
                 var candlesHighObs = (candles[obs].High + Math.Max(candles[obs].Open, candles[obs].Close)) / 2;
@@ -55,7 +57,7 @@ namespace TradeBot
                     if (!swingLow && (((candlesHighObsHigh - candlesLowObsLow) / candlesLowObsLow)) * (decimal) 100F >=
                         (decimal) deviationInPercent)
                     {
-                        zigZag.Add(obsLow);
+                        zigZag.Add(new Dot(candles[obsLow].TimeStamp, candles[obsLow].Low));
                         swingHigh = false;
                         swingLow = true;
                     }
@@ -70,7 +72,7 @@ namespace TradeBot
                     if (!swingHigh && (((candlesHighObsHigh - candlesLowObsLow) / candlesLowObsLow) * (decimal) 100F >=
                                        (decimal) deviationInPercent))
                     {
-                        zigZag.Add(obsHigh);
+                        zigZag.Add(new Dot(candles[obsHigh].TimeStamp, candles[obsHigh].High));
                         swingHigh = true;
                         swingLow = false;
                     }
@@ -80,30 +82,6 @@ namespace TradeBot
             }
 
             return zigZag;
-        }
-
-        public static List<Dot> GetZigZagDot(List<int> zigZag, List<Candle> candles)
-        {
-            var dots = new List<Dot>();
-            bool lowOrHigh = zigZag[0] > zigZag[1];
-            foreach (var pointer in zigZag)
-            {
-                Dot dot;
-                if (lowOrHigh)
-                {
-                    dot = new Dot(candles[pointer].TimeStamp, candles[pointer].Low);
-                    lowOrHigh = false;
-                }
-                else
-                {
-                    dot = new Dot(candles[pointer].TimeStamp, candles[pointer].High);
-                    lowOrHigh = true;
-                }
-
-                dots.Add(dot);
-            }
-
-            return dots;
         }
     }
 }

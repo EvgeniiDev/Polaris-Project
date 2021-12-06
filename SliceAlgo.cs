@@ -6,12 +6,12 @@ namespace TradeBot
 {
     public class SliceAlgorithm
     {
-        const decimal differentInPercent = 0.05m;
-        const int minAmountCandles = 4; // >3
-        const int maxAmountCandles = 15; // >2
+        const decimal differentInPercent = 0.7m;
+        const int minAmountCandles = 5; // >3
+        const int maxAmountCandles = 20; // >2
         const int minCountTouchOfPrice = 3;
         const int minAmountOfCombinations = 1;
-        const decimal StableFactor = 0.3m;
+        const decimal StableFactor = 0.10m;
         public static (decimal, decimal) calcFactors(List<Dot> twoDots)
         {
             if (twoDots[1].TimeStamp - twoDots[0].TimeStamp == 0)
@@ -110,9 +110,9 @@ namespace TradeBot
 
 
             return (
-                checkProjectionOfBox(0.8m,section)
+                checkProjectionOfBox(0.65m,section)
                 && IsStable(section) 
-                && checkSquareOfBox(0.375m, section)
+                && checkSquareOfBox(0.36m, section)
                 , box.Min(),box.Max());
         }
         private static bool checkProjectionOfBox(decimal kFactor, List<Candle> section)

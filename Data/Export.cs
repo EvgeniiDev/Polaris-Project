@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 
 namespace TradeBot.Data
 {
-    class DataExport
+    class Export
     {
 
 
@@ -47,8 +47,6 @@ namespace TradeBot.Data
                 WriteIndented = true,
             };
             var result = JsonSerializer.Serialize(outJsonStruct, options);
-
-            if (File.Exists(filePath)) File.Delete(filePath);
             File.WriteAllText(filePath, result);
         }
 
