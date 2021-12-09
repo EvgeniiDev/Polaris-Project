@@ -23,7 +23,7 @@ namespace TradeBot.Data
         //    "legend": false
         //}
 
-        public static void WriteJson(List<Candle> candles, List<Accumulation> accumulation, List<Dot> zag, string filePath)
+        public static void WriteJson(List<Candle> candles, List<Accumulation> accumulation, List<Dot> zag,string dir, string fileName)
         {
             var accum = new List<Accum>();
             foreach (var t in accumulation)
@@ -47,7 +47,11 @@ namespace TradeBot.Data
                 WriteIndented = true,
             };
             var result = JsonSerializer.Serialize(outJsonStruct, options);
-            File.WriteAllText(filePath, result);
+            Directory.CreateDirectory(dir);
+
+            if (File.Exists($"{dir}\\{fileName}"))
+                File.Delete($"{dir}\\{fileName}");
+            File.WriteAllText($"{dir}\\{fileName}", result);
         }
 
         public static object GetDataFromDB(DataFromDB dataType)

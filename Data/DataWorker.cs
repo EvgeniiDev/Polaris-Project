@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Binance.Net.Enums;
 using TradeBot.Data;
@@ -46,21 +47,25 @@ namespace TradeBot
                 Time = timeOfLastData.AddSeconds((int)GetSeconds(TimeFrame));
                 Console.WriteLine(Time);
                 if (Candles.Count % 20 == 0)
-                    Export.WriteJson(Candles, Accumulations, zigZag, @"C:\Users\user\Desktop\tvjs-xp-main\src\apps\data.json");
+                    Export.WriteJson(Candles, Accumulations, zigZag, @"C:\Users\user\Desktop\tvjs-xp-main\src\apps" ,"data.json");
             }
         }
 
-        private async Task<int> DataProcessing()
+        private async Task DataProcessing()
         {
             var timer = new Stopwatch();
             timer.Start();
-            await UpdateZigZags();
-            await UpdateAccumulations();
+
+            var a = new Task[] { UpdateZigZags(), UpdateAccumulations() };
+            Task.WaitAll(a);
+            a.AsParallel();
+            //await UpdateZigZags();
+            //await UpdateAccumulations();
+
             timer.Stop();
             Console.WriteLine(timer.ElapsedMilliseconds);
             //Send to trader
             //JoinBoxes(accumulations);
-            return 1;
         }
 
         private async Task UpdateZigZags()
@@ -92,25 +97,27 @@ namespace TradeBot
             Accumulations = await Task.Run(() => SliceAlgorithm.FindBoxes(Candles));
         }
 
-        private void Exit()
+        public void Exit()
         {
-            //stop workin cycle
+            //stop working cycle
             //save data there to files
             //save data to db
             //
-            throw new NotImplementedException();
+            IsStarted = false;
+            Thread.Sleep(1000);
+            ExportData();
+
         }
 
         private void ImportSavedData()
         {
-
+            throw new NotImplementedException();
         }
         private void ExportData()
         {
-            Export.WriteJson(Candles, Accumulations, zigZag, $"./data/{Pair}-{TimeFrame}.json");
+            //Export.WriteJson(Candles, Accumulations, zigZag, $".\\data\\{Pair}", $"{TimeFrame}-candles.json");
             //save data to json
             //save data to db
-            throw new NotImplementedException();
         }
         private static void JoinBoxes(List<Accumulation> accumulations)
         {

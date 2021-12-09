@@ -61,11 +61,9 @@ namespace TradeBot
                         swingHigh = false;
                         swingLow = true;
                     }
-
-                    if (swingLow) obsLow = obsHigh;
+                    if (swingLow)
+                        obsLow = obsHigh;
                 }
-
-
                 else if (candlesLowObs < candlesLowObsLow)
                 {
                     obsLow = obs;
@@ -76,11 +74,9 @@ namespace TradeBot
                         swingHigh = true;
                         swingLow = false;
                     }
-
                     if (swingHigh) obsHigh = obsLow;
                 }
             }
-
             return zigZag;
         }
     }
