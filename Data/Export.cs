@@ -11,47 +11,113 @@ namespace TradeBot.Data
 {
     class Export
     {
-
-
-        //"name": "Line1",
-        //"type": "Segment",
-        //"data": [],
-        //"settings": {
-        //    "p1": [1555732800000, 5405],
-        //    "p2": [1555948800000, 5306],
-        //    "lineWidth": 1,
-        //    "legend": false
-        //}
-
-        public static void WriteJson(List<Candle> candles, List<Accumulation> accumulation, List<Dot> zag,string dir, string fileName)
+        public static void WriteJson(List<Candle> candles, List<Accumulation> accumulation, List<Dot> zag, List<Mark> marks, string dir, string fileName)
         {
             var accum = new List<Accum>();
             foreach (var t in accumulation)
+            {
                 accum.Add(new Accum("Base", t.Type, new string[0],
                             new Settings(t.StartTimeStamp, t.LowPrice, t.EndTimeStamp, t.HighPrice)));
+            }
 
             var chart = new Dictionary<string, List<decimal[]>>() { { "data", candles
                                         .Select(c => new[] { c.TimeStamp, c.Open, c.High, c.Low, c.Close }).ToList() } };
-
             var zigzag = new List<Segment>();
-            for (int n=1; n < zag.Count; n++ ){
+            for (int n = 1; n < zag.Count; n++)
+            {
                 zigzag.Add(new Segment("Line", "", new string[0],
                             new SegmentSettings(new decimal[] { zag[n - 1].TimeStamp, zag[n - 1].Price },
-                                                new decimal[] { zag[n].TimeStamp, zag[n].Price }, 2,false)));
+                                                new decimal[] { zag[n].TimeStamp, zag[n].Price }, 2, false)));
             }
             var output = new List<object>(accum);
             output.AddRange(zigzag);
-            var outJsonStruct = new Dictionary<string, object>() { { "onchart",  output  }, { "chart", chart } };
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-            };
+            var mmarks =  marks.Select(c => new object[] { c.TimeStamp, c.Text, c.num1, c.Color, c.num2 } ).ToList()  ;
+            var asdas = new Marks() { type = "Splitters", name = "Data", data = mmarks.ToArray() };
+            output.Add(asdas);
+            var outJsonStruct = new Dictionary<string, object>() { { "onchart", output }, { "chart", chart } };
+            var options = new JsonSerializerOptions { WriteIndented = true, };
             var result = JsonSerializer.Serialize(outJsonStruct, options);
-            Directory.CreateDirectory(dir);
 
+            Directory.CreateDirectory(dir);
+            if (File.Exists($"{dir}\\{fileName}"))
+            {
+                File.Delete($"{dir}\\{fileName}");
+            }
+            File.WriteAllText($"{dir}\\{fileName}", result);
+        }
+
+        public static void SaveCandles(List<Candle> candles, string dir, string fileName)
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            var asdas = new Candles();
+            asdas.candles = candles;
+            var result = JsonSerializer.Serialize(asdas, options);
+            Directory.CreateDirectory(dir);
             if (File.Exists($"{dir}\\{fileName}"))
                 File.Delete($"{dir}\\{fileName}");
             File.WriteAllText($"{dir}\\{fileName}", result);
+        }
+        public static void SaveAccums(List<Accumulation> accumulations, string dir, string fileName)
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            var asdas = new Accums() { accums = accumulations };
+            var result = JsonSerializer.Serialize(asdas, options);
+
+            Directory.CreateDirectory(dir);
+            if (File.Exists($"{dir}\\{fileName}"))
+                File.Delete($"{dir}\\{fileName}");
+            File.WriteAllText($"{dir}\\{fileName}", result);
+        }
+        public static void SaveZigZag(List<Dot> zigZag, string dir, string fileName)
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            var asdas = new Dots() { zigZag = zigZag };
+            var result = JsonSerializer.Serialize(asdas, options);
+
+            Directory.CreateDirectory(dir);
+            if (File.Exists($"{dir}\\{fileName}"))
+                File.Delete($"{dir}\\{fileName}");
+            File.WriteAllText($"{dir}\\{fileName}", result);
+        }
+
+        public static List<Accumulation> GetAccumsFromDB(string dir, string fileName)
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            if (File.Exists($"{dir}\\{fileName}"))
+            {
+                string json = File.ReadAllText($"{dir}\\{fileName}");
+                return JsonSerializer.Deserialize<Accums>(json, options).accums;
+            }
+            else
+            {
+                throw new Exception("No savefile");
+            }
+        }
+        public static List<Candle> GetCandlesFromDB(string dir, string fileName)
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            if (File.Exists($"{dir}\\{fileName}"))
+            {
+                string json = File.ReadAllText($"{dir}\\{fileName}");
+                return JsonSerializer.Deserialize<Candles>(json, options).candles;
+            }
+            else
+            {
+                throw new Exception("No savefile");
+            }
+        }
+        public static List<Dot> GetZigZagFromDB(string dir, string fileName)
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            if (File.Exists($"{dir}\\{fileName}"))
+            {
+                string json = File.ReadAllText($"{dir}\\{fileName}");
+                return JsonSerializer.Deserialize<Dots>(json, options).zigZag;
+            }
+            else
+            {
+                throw new Exception("No savefile");
+            }
         }
 
         public static object GetDataFromDB(DataFromDB dataType)
@@ -97,7 +163,6 @@ namespace TradeBot.Data
         }
 
     }
-
     public class Pair
     {
         string Name;
@@ -107,7 +172,6 @@ namespace TradeBot.Data
             Name = nameOfPair;
         }
     }
-
     public class BalancesHistory
     {
         List<BalanceHistory> BalanceHistory;
@@ -136,7 +200,7 @@ namespace TradeBot.Data
     }
     public class Segment
     {
-       [JsonPropertyName("name")]
+        [JsonPropertyName("name")]
         public string Name { get; set; }
         [JsonPropertyName("type")]
         public string Type { get; set; }
@@ -171,7 +235,6 @@ namespace TradeBot.Data
         AddCandles,
         AddPriceGraph
     }
-
     public class Accum
     {
         [JsonPropertyName("name")]
@@ -215,5 +278,17 @@ namespace TradeBot.Data
             Color = color;
             ZIndex = zIndex;
         }
+    }
+    public class Candles
+    {
+        public List<Candle> candles { get; set; }
+    }
+    public class Accums
+    {
+        public List<Accumulation> accums { get; set; }
+    }
+    public class Dots
+    {
+        public List<Dot> zigZag { get; set; }
     }
 }

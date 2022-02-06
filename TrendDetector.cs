@@ -1,100 +1,104 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TradeBot
 {
     class TrendDetector
     {
-        public static List<Dot> TrandDetect(List<Dot> dots)
+        public static List<Mark> TrendDetect(List<Dot> dots)
         {
-            var answer = new List<Dot>();
+            var result = new List<Mark>();
+
+            if (dots.Count < 3)
+                throw new Exception("Мало данных");
+
             var startTrend = dots[0].Price < dots[1].Price ? Trend.Up : Trend.Down;
             var currentTrend = startTrend;
-            decimal lastLocalLow = startTrend == Trend.Up ? dots[0].Price : dots[1].Price;
-            decimal lastLocalHigh = startTrend == Trend.Down ? dots[0].Price : dots[1].Price;
+            decimal previousLow = startTrend == Trend.Up ? dots[0].Price : dots[1].Price;
+            decimal previousHigh = startTrend == Trend.Down ? dots[0].Price : dots[1].Price;
 
-            for (int n = startTrend == Trend.Up ? 3 : 2; n < dots.Count; n += 2)
+            for (int n = 4; n < dots.Count; n++)
             {
-                ;
-                var low = dots[n - 1];
-                var high = dots[n];
-                if (lastLocalLow <= low.Price && lastLocalHigh <= high.Price ||
-                    (lastLocalLow <= low.Price && !(lastLocalHigh <= high.Price) && low.Price<=dots[n+2].Price))//up trend
-                {
-                    if (currentTrend == Trend.Down)
-                        answer.Add(dots[n]);
-                    currentTrend = Trend.Up;
-                    Console.WriteLine($"Up Trend {low.Price}");
-                }
-                else if (lastLocalHigh >= high.Price && lastLocalLow >= low.Price ||
-                    !(lastLocalHigh <= high.Price) && lastLocalLow <= low.Price && high.Price <= dots[n + 1].Price)//down trend
-                {
-                    if (currentTrend == Trend.Up)
-                        answer.Add(dots[n-1]);
-                    currentTrend = Trend.Down;
-                    Console.WriteLine($"Down Trend {low.Price}");
-                }
-                else
-                {
-                    Console.WriteLine($"Trend Broken");
 
-                    if (currentTrend == Trend.Up)
+                if (dots[n].Price < dots[n - 2].Price
+                        && dots[n - 2].Price > dots[n - 4].Price
+                        && dots[n - 1].Price > dots[n - 2].Price)
+                {
+                    if (dots[n - 3].Price <= dots[n - 1].Price)
                     {
-                        answer.Add(dots[n-1]);
-                        currentTrend = Trend.Down;
+                        result.Add(new Mark(dots[n - 2].TimeStamp, "Down PP", 0, string.Empty, 0));
                     }
                     else
                     {
-                        answer.Add(dots[n-2]);
-                        currentTrend = Trend.Up;
+                        result.Add(new Mark(dots[n - 2].TimeStamp, "Down Slom", 0, string.Empty, 0));
                     }
+                    currentTrend = Trend.Up;
                 }
-                lastLocalLow = low.Price;
-                lastLocalHigh = high.Price;
-            }
 
-            return answer;
-        }
-        public static List<Dot> CalculatePriceStructLight(List<Candle> candles, decimal deviationInPercent)
-        {
-            var trend = candles[1].High > candles[0].High || candles[1].Low > candles[0].Low ? Trend.Up : Trend.Down;
-            var zigZag = new List<Dot>();
-            AddDot(candles[0], zigZag, trend);
-            for (int n = 1; n < candles.Count; n++)
-            {
-                var previousCandle = candles[n - 1];
-                var currentCandle = candles[n];
-                if (currentCandle.High > previousCandle.High)
+                if (dots[n].Price > dots[n - 2].Price
+                        && dots[n - 2].Price < dots[n - 4].Price
+                        && dots[n - 1].Price < dots[n - 2].Price)
                 {
-                    if (trend == Trend.Down) AddDot(previousCandle, zigZag, trend);
-                    trend = Trend.Up;
+                    if (dots[n - 3].Price >= dots[n - 1].Price)
+                    {
+                        result.Add(new Mark(dots[n - 2].TimeStamp, "Up PP", 0, string.Empty, 0));
+                    }
+                    else
+                    {
+                        result.Add(new Mark(dots[n - 2].TimeStamp, "Up Slom", 0, string.Empty, 0));
+                    }
+                    currentTrend = Trend.Up;
                 }
-                else if (currentCandle.Low < previousCandle.Low)
-                {
-                    if (trend == Trend.Up) AddDot(previousCandle, zigZag, trend);
-                    trend = Trend.Down;
-                }
+
+
+
+                //if (n % 2 == 0 && startTrend == Trend.Up || n % 2 == 1 && startTrend == Trend.Down)
+                //    dotType = DotType.Low;
+                //if (n % 2 == 0 && startTrend == Trend.Down || n % 2 == 1 && startTrend == Trend.Up)
+                //    dotType = DotType.High;
+
+                //if (dotType == DotType.Low && currentTrend == Trend.Up && previousLow < current.Price)
+                //    previousLow = current.Price;
+
+                //if (dotType == DotType.High && currentTrend == Trend.Down && previousHigh > current.Price)
+                //    previousHigh = current.Price;
+
+                //if (dotType == DotType.High && currentTrend == Trend.Down)
+                //{
+                //    if (previousHigh < current.Price)
+                //    {
+                //        result.Add(new Mark(dots[n - 1].TimeStamp, "Up PP", 0, string.Empty, 0));
+                //        currentTrend = Trend.Up;
+                //    }
+                //}
+                ////result.Add(new Mark(dots[n].TimeStamp, "Up", 0, string.Empty, 0));
+                //if (dotType == DotType.Low && currentTrend == Trend.Up)
+                //{
+                //    if (previousLow > current.Price)
+                //    {
+                //        result.Add(new Mark(dots[n - 2].TimeStamp, "Down PP", 0, string.Empty, 0));
+                //        currentTrend = Trend.Down;
+                //    }
+                //}
+                //result.Add(new Mark(dots[n].TimeStamp, "Down", 0, string.Empty, 0));
+
+                //if(dotType == DotType.Low)
+                //    previousLow = current.Price;
+                //if (dotType == DotType.High)
+                //    previousHigh = current.Price;
             }
-            AddDot(candles[candles.Count - 1], zigZag, trend);
-            return zigZag;
+            return result;
         }
-
-        private static void AddDot(Candle candle, List<Dot> dots, Trend trend)
-        {
-            if (trend == Trend.Down)
-                dots.Add(new Dot(candle.TimeStamp, candle.Low));
-            else
-                dots.Add(new Dot(candle.TimeStamp, candle.High));
-        }
-
         public enum Trend
         {
             Down,
             Up,
             Side
+        }
+        public enum DotType
+        {
+            Low,
+            High
         }
     }
 }

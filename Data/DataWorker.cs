@@ -1,10 +1,9 @@
-﻿using System;
+﻿using Binance.Net.Enums;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Binance.Net.Enums;
 using TradeBot.Data;
 
 namespace TradeBot
@@ -13,13 +12,17 @@ namespace TradeBot
     {
         public string Pair;
         public KlineInterval TimeFrame = new KlineInterval();
+
         private List<Candle> Candles = new List<Candle>();
         private List<Accumulation> Accumulations = new List<Accumulation>();
         private List<Dot> zigZag = new List<Dot>();
+
         private DateTime Time = new DateTime(2018, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        private BinanceConnector parser = new BinanceConnector();
         private bool IsStarted = false;
         public void Run()
         {
+
             //Timer t = new Timer(1000);
             //t.AutoReset = true;
             //t.Elapsed += new ElapsedEventHandler(CheckNewData);
@@ -32,69 +35,43 @@ namespace TradeBot
         {
             while (IsStarted)
             {
-                var lastCandles = await new DataParser().GetCandles(Pair, TimeFrame, Time, Time);
-                lastCandles = lastCandles.Where(x => x != null).ToList();
+                var lastCandles = await parser.GetCandles(Pair, TimeFrame, Time, Time);
+
                 if (lastCandles.Count == 0)
+                {
                     continue;
+                }
                 if (lastCandles.Count > 0 && Candles.Count > 0 && Candles.Last() != lastCandles.First())
                 {
                     await DataProcessing();
                 }
 
                 Candles.AddRange(lastCandles);
-                var timeOfLastData = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                                                   .AddMilliseconds(Candles.Last().TimeStamp);
+                var timeOfLastData = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                timeOfLastData = timeOfLastData.AddMilliseconds(Candles.Last().TimeStamp);
                 Time = timeOfLastData.AddSeconds((int)GetSeconds(TimeFrame));
                 Console.WriteLine(Time);
-                if (Candles.Count % 20 == 0)
-                    Export.WriteJson(Candles, Accumulations, zigZag, @"C:\Users\user\Desktop\tvjs-xp-main\src\apps" ,"data.json");
+                if (Candles.Count % 10 == 0)
+                    Export.WriteJson(Candles, Accumulations, zigZag, null, @"C:\Users\user\Desktop\tvjs-xp-main\src\apps", "data.json");
             }
         }
 
         private async Task DataProcessing()
         {
-            var timer = new Stopwatch();
-            timer.Start();
-
-            var a = new Task[] { UpdateZigZags(), UpdateAccumulations() };
-            Task.WaitAll(a);
-            a.AsParallel();
-            //await UpdateZigZags();
-            //await UpdateAccumulations();
-
-            timer.Stop();
-            Console.WriteLine(timer.ElapsedMilliseconds);
+            //var timer = new Stopwatch();
+            // timer.Start();
+            var a = Task.Run(() => ZigZag.CalculatePriceStructLight(Candles, 1));
+            var b = Task.Run(() => SliceAlgorithm.FindBoxes(Candles));
+            a.Wait();
+            b.Wait();
+            ;
+            zigZag = a.Result;
+            ;
+            Accumulations = b.Result;
+            //timer.Stop();
+            //Console.WriteLine(timer.ElapsedMilliseconds);
             //Send to trader
             //JoinBoxes(accumulations);
-        }
-
-        private async Task UpdateZigZags()
-        {
-            //int countOfReferenceDots = 2;
-            //if (candles.Count > 20)
-            //{
-            //    var test = ZigZag.CalculateZigZag(candles, 5);
-            //    if (zigZag.Count >= countOfReferenceDots)
-            //    {
-            //        var time = zigZag[zigZag.Count - countOfReferenceDots].TimeStamp;
-            //        var firstCandle = candles.Find(x => x.TimeStamp == time);
-            //        var firstCandleId = candles.IndexOf(firstCandle);
-            //        var newZigZag = ZigZag.CalculateZigZag(candles.TakeLast(candles.Count()-firstCandleId).ToList(), 5);
-            //       // zigZag.RemoveRange()
-            //        zigZag.AddRange(newZigZag.Skip(countOfReferenceDots));
-            //    }
-            //    else if (test.Count >= zigZag.Count)
-            //    {
-            //        zigZag.Clear();
-            //        zigZag.AddRange(test);
-            //    }
-            //}
-            zigZag = await Task.Run(() => ZigZag.CalculateZigZag(Candles, 5));
-        }
-
-        private async Task UpdateAccumulations()
-        {
-            Accumulations = await Task.Run(() => SliceAlgorithm.FindBoxes(Candles));
         }
 
         public void Exit()
@@ -104,7 +81,7 @@ namespace TradeBot
             //save data to db
             //
             IsStarted = false;
-            Thread.Sleep(1000);
+            Thread.Sleep(3000);
             ExportData();
 
         }
@@ -113,9 +90,18 @@ namespace TradeBot
         {
             throw new NotImplementedException();
         }
+        public void ImportData()
+        {
+            var candles = Export.GetCandlesFromDB($".\\data\\{Pair}", $"{TimeFrame}-candles.json");
+            var accumulations = Export.GetAccumsFromDB($".\\data\\{Pair}", $"{TimeFrame}-accums.json");
+            var zigZag = Export.GetZigZagFromDB($".\\data\\{Pair}", $"{TimeFrame}-zigzag.json");
+        }
         private void ExportData()
         {
             //Export.WriteJson(Candles, Accumulations, zigZag, $".\\data\\{Pair}", $"{TimeFrame}-candles.json");
+            Export.SaveCandles(Candles, $".\\data\\{Pair}", $"{TimeFrame}-candles.json");
+            Export.SaveAccums(Accumulations, $".\\data\\{Pair}", $"{TimeFrame}-accums.json");
+            Export.SaveZigZag(zigZag, $".\\data\\{Pair}", $"{TimeFrame}-zigzag.json");
             //save data to json
             //save data to db
         }
@@ -134,7 +120,7 @@ namespace TradeBot
             }
 
         }
-    
+
         private static TimeFrame GetSeconds(KlineInterval timeFrame)
         {
             switch (timeFrame)

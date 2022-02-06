@@ -15,14 +15,14 @@ namespace TradeBot
         public static (decimal, decimal) calcFactors(List<Dot> twoDots)
         {
             if (twoDots[1].TimeStamp - twoDots[0].TimeStamp == 0)
-                return (0,twoDots[0].Price);
+                return (0, twoDots[0].Price);
             return ((twoDots[0].Price - twoDots[1].Price) / (twoDots[1].TimeStamp - twoDots[0].TimeStamp),
                 (twoDots[0].TimeStamp * twoDots[1].Price - twoDots[1].TimeStamp * twoDots[0].Price) / (twoDots[1].TimeStamp - twoDots[0].TimeStamp));
         }
         public static List<Dot> GetTouches(Dot border, List<Candle> dots, Direction dir)
         {
             decimal factorB = border.Price;
-            var touches = new List<Dot>() { new Dot(0,0)};
+            var touches = new List<Dot>() { new Dot(0, 0) };
             for (int i = 0; i < dots.Count; i++)
             {
                 if (dir == Direction.Up)
@@ -30,7 +30,7 @@ namespace TradeBot
                     var expectedPrice = factorB;
                     var priceDelta = Math.Abs(expectedPrice - dots[i].High);
                     if (priceDelta <= differentInPercent * expectedPrice
-                        && (-touches.Last().TimeStamp + dots[i].TimeStamp) >= 86400000*2)
+                        && (-touches.Last().TimeStamp + dots[i].TimeStamp) >= 86400000 * 2)
                     {
                         touches.Add(new Dot(dots[i].TimeStamp, dots[i].High));
                     }
@@ -40,11 +40,11 @@ namespace TradeBot
                     var expectedPrice = factorB;
                     var priceDelta = Math.Abs(expectedPrice - dots[i].Low);
                     if (priceDelta <= differentInPercent * expectedPrice
-                        && (-touches.Last().TimeStamp + dots[i].TimeStamp) >= 86400000*2)
+                        && (-touches.Last().TimeStamp + dots[i].TimeStamp) >= 86400000 * 2)
                     {
                         touches.Add(new Dot(dots[i].TimeStamp, dots[i].Low));
                     }
-                } 
+                }
             }
             touches.RemoveAt(0);
             return touches;
@@ -55,25 +55,38 @@ namespace TradeBot
             var boxes = new List<Accumulation>();
             for (int i = 0; i < zigZag.Count; i++)
             {
-                var lastBox = new Accumulation(0, 0, 0, 0, 0);
+                var lastBox = new Accumulation()
+                {
+                    EndTimeStamp = 0,
+                    LowPrice = 0,
+                    StartTimeStamp = 0,
+                    HighPrice = 0,
+                    Type = 0
+                };
                 for (int j = i + minAmountCandles; j < Math.Min(zigZag.Count, i + maxAmountCandles); j++)
                 {
                     var section = zigZag.GetRange(i, j - i);
                     var y = isAccum(section);
                     if (y.Item1)
                     {
-                        lastBox = (new Accumulation(section[0].TimeStamp, y.Item2,
-                            section[section.Count - 1].TimeStamp, y.Item3, AccumulationType.Rectangle));
+                        lastBox = (new Accumulation()
+                        {
+                            EndTimeStamp = section[0].TimeStamp,
+                            LowPrice = y.Item2,
+                            StartTimeStamp = section[section.Count - 1].TimeStamp,
+                            HighPrice = y.Item3,
+                            Type = AccumulationType.Rectangle
+                        });
                     }
                 }
 
-                if (lastBox.EndTimeStamp != 0 
-                    && !boxes.Select(x=>x.EndTimeStamp).Contains(lastBox.EndTimeStamp))
+                if (lastBox.EndTimeStamp != 0
+                    && !boxes.Select(x => x.EndTimeStamp).Contains(lastBox.EndTimeStamp))
                     boxes.Add(lastBox);
             }
             return boxes;
         }
-        private static (bool,decimal,decimal) isAccum(List<Candle> section)
+        private static (bool, decimal, decimal) isAccum(List<Candle> section)
         {
             const int resolution = 40;
             (Dot ATL, Dot ATH) = GetMaxsAndMins(section);
@@ -99,11 +112,11 @@ namespace TradeBot
             for (var a = 0; a < list.Length; a++)
             {
                 if (list[a] >= median)
-                    box.Add(a * delta+ ATL.Price);
+                    box.Add(a * delta + ATL.Price);
             }
 
-            return  (checkProjectionOfBox(0.65m,section) && IsStable(section) 
-                    && checkSquareOfBox(0.36m, section), box.Min(),box.Max());
+            return (checkProjectionOfBox(0.65m, section) && IsStable(section)
+                    && checkSquareOfBox(0.36m, section), box.Min(), box.Max());
         }
         private static bool checkProjectionOfBox(decimal kFactor, List<Candle> section)
         {
@@ -146,19 +159,19 @@ namespace TradeBot
         }
         public static decimal midArifm(List<decimal> sourceNumbers)
         {
-            return sourceNumbers.Sum()/sourceNumbers.Count;
+            return sourceNumbers.Sum() / sourceNumbers.Count;
         }
         private static bool IsStable(List<Candle> section)
         {
             var medianDelta = new List<decimal>();
             decimal maxMedian = 0;
-            foreach(var t in section)
+            foreach (var t in section)
             {
                 medianDelta.Add(t.High - t.Close);
                 maxMedian = Math.Max(maxMedian, t.High - t.Close);
             }
             var median = GetMedian(medianDelta);
-            return maxMedian*StableFactor< median;
+            return maxMedian * StableFactor < median;
         }
         private static void ExtendBox(List<Candle> zigZag, List<Candle> section)
         {
@@ -169,9 +182,9 @@ namespace TradeBot
             var firstIndex = section.IndexOf(section.First());
             var lastIndex = section.IndexOf(section.Last());
 
-            for (int i = lastIndex-1; i < zigZag.Count; i++)
+            for (int i = lastIndex - 1; i < zigZag.Count; i++)
             {
-                if (lowBorder <= zigZag[i].Low*0.98m && zigZag[i].High * 1.02m <= topBorder)
+                if (lowBorder <= zigZag[i].Low * 0.98m && zigZag[i].High * 1.02m <= topBorder)
                     section.Add(zigZag[i]);
                 else
                 {
@@ -179,7 +192,7 @@ namespace TradeBot
                 }
             }
 
-            for (int i = firstIndex-1; i >= 0; i--)
+            for (int i = firstIndex - 1; i >= 0; i--)
             {
                 if (lowBorder <= zigZag[i].Low * 0.98m && zigZag[i].High * 1.02m <= topBorder)
                     section.Add(zigZag[i]);
@@ -190,7 +203,7 @@ namespace TradeBot
             }
         }
         public static decimal GetMedian(List<decimal> sourceNumbers)
-        {    
+        {
             if (sourceNumbers == null || sourceNumbers.Count == 0)
                 throw new System.Exception("Median of empty array not defined.");
 
@@ -198,17 +211,17 @@ namespace TradeBot
             sortedPNumbers.Sort();
             int size = sortedPNumbers.Count;
             int mid = size / 2;
-            decimal median = (size % 2 != 0) ? (decimal)sortedPNumbers[mid] : 
+            decimal median = (size % 2 != 0) ? (decimal)sortedPNumbers[mid] :
                                 ((decimal)sortedPNumbers[mid] + (decimal)sortedPNumbers[mid - 1]) / 2;
             return median;
         }
         public static (Dot, Dot) GetMaxsAndMins(List<Candle> dots)
         {
             var a = dots.OrderBy(x => x.High).ToList();
-            var highDots = new Dot(a[a.Count - 1].TimeStamp, a[a.Count-1].High); // firstMax, secondMax
+            var highDots = new Dot(a[a.Count - 1].TimeStamp, a[a.Count - 1].High); // firstMax, secondMax
             var b = dots.OrderBy(x => x.Low).ToList();
             var lowDots = new Dot(b[0].TimeStamp, b[0].Low);
-            return (lowDots,highDots);
+            return (lowDots, highDots);
         }
         public enum Direction
         {
