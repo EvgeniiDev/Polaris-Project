@@ -89,8 +89,43 @@ namespace TradeBot
             Color = color;
             num2 = v3;
         }
+        public override string ToString()
+        {
+            return $"{Text} : {TimeStamp.ToDateTime()}";
+        }
 
     }
+    //{
+    //    "name": "Line1",
+    //    "type": "Segment",
+    //    "data": [],
+    //    "settings": {
+    //        "p1": [1555732800000, 5405],
+    //        "p2": [1555948800000, 5306],
+    //        "lineWidth": 1,
+    //        "legend": false
+    //    }
+    //}
+    public class Segment
+    {
+        public Dot FirstDot = new Dot(0, 0);
+        public Dot SecondDot = new Dot(0, 0);
+
+        public Segment(long firstTimeStamp, decimal firstPrice, long secondTimeStamp, decimal secondPrice)
+        {
+            FirstDot.TimeStamp = firstTimeStamp;
+            FirstDot.Price = firstPrice;
+            SecondDot.TimeStamp = secondTimeStamp;
+            SecondDot.Price = secondPrice;
+        }
+
+        public Segment(Dot firstDot, Dot secondDot)
+        {
+            FirstDot = firstDot;
+            SecondDot = secondDot;
+        }
+    }
+
     public enum AccumulationType
     {
         Rectangle,

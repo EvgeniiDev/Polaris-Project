@@ -5,88 +5,116 @@ namespace TradeBot
 {
     class TrendDetector
     {
-        public static List<Mark> TrendDetect(List<Dot> dots)
+        private List<Dot> ppUp = new List<Dot>();
+        public TrendDetector()
         {
-            var result = new List<Mark>();
-
-            if (dots.Count < 3)
+        }
+        public List<Segment> TrendDetect(List<Dot> dots)
+        {
+            if (dots.Count < 2)
                 throw new Exception("Мало данных");
 
-            var startTrend = dots[0].Price < dots[1].Price ? Trend.Up : Trend.Down;
+            var result = new List<Segment>();
+            int lastPPNum = -1;
+            int lastSlomNum = -1;
+            var startTrend = dots[0].Price < dots[2].Price ? Trend.Up : Trend.Down;
             var currentTrend = startTrend;
-            decimal previousLow = startTrend == Trend.Up ? dots[0].Price : dots[1].Price;
-            decimal previousHigh = startTrend == Trend.Down ? dots[0].Price : dots[1].Price;
 
-            for (int n = 4; n < dots.Count; n++)
+            Console.WriteLine(startTrend);
+
+            for (int n = 2; n < dots.Count; n++)
             {
-
-                if (dots[n].Price < dots[n - 2].Price
-                        && dots[n - 2].Price > dots[n - 4].Price
-                        && dots[n - 1].Price > dots[n - 2].Price)
+                var t = 0.05m;
+                if (currentTrend == Trend.Up && dots[n - 1].Price > dots[n - 0].Price && dots[n - 1].Price > dots[n - 2].Price)
                 {
-                    if (dots[n - 3].Price <= dots[n - 1].Price)
+                    if (dots[n - 1].Price > dots[n - 3].Price)
                     {
-                        result.Add(new Mark(dots[n - 2].TimeStamp, "Down PP", 0, string.Empty, 0));
+                        lastPPNum = n - 2;
+                        //Console.WriteLine(dots[lastPPNum]);
                     }
-                    else
+                    if (dots[n - 0].Price > dots[n - 2].Price && dots[n - 1].Price > dots[n - 3].Price)
                     {
-                        result.Add(new Mark(dots[n - 2].TimeStamp, "Down Slom", 0, string.Empty, 0));
+                        lastSlomNum = n;
+                        //Console.WriteLine(dots[lastSlomNum]);
                     }
-                    currentTrend = Trend.Up;
+                    else if (dots[n - 2].Price > dots[n - 0].Price)
+                    {
+                        //Console.WriteLine($"ПП в short {dots[n - 2]}");
+                        result.Add(new Segment(dots[lastPPNum].TimeStamp, dots[lastPPNum].Price,
+                                    dots[lastPPNum].TimeStamp + 500000000, dots[lastPPNum].Price));
+                        if (lastSlomNum != -1)
+                        {
+                            result.Add(new Segment(dots[lastSlomNum].TimeStamp, dots[lastSlomNum].Price,
+                                dots[lastSlomNum].TimeStamp + 500000000, dots[lastSlomNum].Price));
+                            //Console.WriteLine($"Слом в short {lastSlom}");
+                        }
+                        currentTrend = Trend.Down;
+                    }
                 }
 
-                if (dots[n].Price > dots[n - 2].Price
-                        && dots[n - 2].Price < dots[n - 4].Price
-                        && dots[n - 1].Price < dots[n - 2].Price)
+                if (currentTrend == Trend.Down && dots[n - 1].Price < dots[n - 0].Price && dots[n - 1].Price < dots[n - 2].Price)
                 {
-                    if (dots[n - 3].Price >= dots[n - 1].Price)
+                    if (dots[n - 1].Price < dots[n - 3].Price)
                     {
-                        result.Add(new Mark(dots[n - 2].TimeStamp, "Up PP", 0, string.Empty, 0));
+                        lastPPNum = n - 2;
+                        //Console.WriteLine(dots[lastPPNum]);
                     }
-                    else
+                    if (dots[n - 0].Price < dots[n - 2].Price && dots[n - 1].Price < dots[n - 3].Price)
                     {
-                        result.Add(new Mark(dots[n - 2].TimeStamp, "Up Slom", 0, string.Empty, 0));
+                        lastSlomNum = n;
+                        //Console.WriteLine(dots[lastSlomNum]);
                     }
-                    currentTrend = Trend.Up;
+                    else if (dots[n - 2].Price < dots[n - 0].Price)
+                    {
+                        //Console.WriteLine($"ПП в short {dots[n - 2]}");
+                        result.Add(new Segment(dots[lastPPNum].TimeStamp, dots[lastPPNum].Price,
+                                    dots[lastPPNum].TimeStamp + 500000000, dots[lastPPNum].Price));
+                        if (lastSlomNum != -1)
+                        {
+                            result.Add(new Segment(dots[lastSlomNum].TimeStamp, dots[lastSlomNum].Price,
+                                dots[lastSlomNum].TimeStamp + 500000000, dots[lastSlomNum].Price));
+                            //Console.WriteLine($"Слом в short {lastSlom}");
+                        }
+                        currentTrend = Trend.Up;
+                    }
                 }
-
-
-
-                //if (n % 2 == 0 && startTrend == Trend.Up || n % 2 == 1 && startTrend == Trend.Down)
-                //    dotType = DotType.Low;
-                //if (n % 2 == 0 && startTrend == Trend.Down || n % 2 == 1 && startTrend == Trend.Up)
-                //    dotType = DotType.High;
-
-                //if (dotType == DotType.Low && currentTrend == Trend.Up && previousLow < current.Price)
-                //    previousLow = current.Price;
-
-                //if (dotType == DotType.High && currentTrend == Trend.Down && previousHigh > current.Price)
-                //    previousHigh = current.Price;
-
-                //if (dotType == DotType.High && currentTrend == Trend.Down)
-                //{
-                //    if (previousHigh < current.Price)
-                //    {
-                //        result.Add(new Mark(dots[n - 1].TimeStamp, "Up PP", 0, string.Empty, 0));
-                //        currentTrend = Trend.Up;
-                //    }
-                //}
-                ////result.Add(new Mark(dots[n].TimeStamp, "Up", 0, string.Empty, 0));
-                //if (dotType == DotType.Low && currentTrend == Trend.Up)
-                //{
-                //    if (previousLow > current.Price)
-                //    {
-                //        result.Add(new Mark(dots[n - 2].TimeStamp, "Down PP", 0, string.Empty, 0));
-                //        currentTrend = Trend.Down;
-                //    }
-                //}
-                //result.Add(new Mark(dots[n].TimeStamp, "Down", 0, string.Empty, 0));
-
-                //if(dotType == DotType.Low)
-                //    previousLow = current.Price;
-                //if (dotType == DotType.High)
-                //    previousHigh = current.Price;
             }
+            //for (int n = 4; n < dots.Count; n++)
+            //{
+            //    if (dots[n - 0].Price < dots[n - 2].Price
+            //            && dots[n - 2].Price > dots[n - 4].Price
+            //            && dots[n - 1].Price > dots[n - 2].Price)
+            //    {
+            //        if (dots[n - 3].Price <= dots[n - 1].Price)
+            //        {
+            //            Console.Write(dots[n - 2].Price);
+            //            Console.WriteLine(new Mark(dots[n - 2].TimeStamp, "Down PP", 0, string.Empty, 0));
+            //        }
+            //        else
+            //        {
+            //            Console.Write(dots[n - 2].Price);
+            //            Console.WriteLine(new Mark(dots[n - 2].TimeStamp, "Down Slom", 0, string.Empty, 0));
+            //        }
+            //        currentTrend = Trend.Down;
+            //    }
+            //    if (dots[n - 0].Price > dots[n - 2].Price
+            //            && dots[n - 2].Price < dots[n - 4].Price
+            //            && dots[n - 1].Price < dots[n - 2].Price)
+            //    {
+            //        if (dots[n - 3].Price >= dots[n - 1].Price)
+            //        {
+            //            Console.Write(dots[n - 2].Price);
+            //            Console.WriteLine(new Mark(dots[n - 2].TimeStamp, "Up PP", 0, string.Empty, 0));
+            //        }
+            //        else
+            //        {
+            //            Console.Write(dots[n - 2].Price);
+            //            Console.WriteLine(new Mark(dots[n - 2].TimeStamp, "Up Slom", 0, string.Empty, 0));
+            //        }
+            //        currentTrend = Trend.Up;
+            //    }
+            //}
+
             return result;
         }
         public enum Trend

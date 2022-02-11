@@ -52,7 +52,7 @@ namespace TradeBot
                 Time = timeOfLastData.AddSeconds((int)GetSeconds(TimeFrame));
                 Console.WriteLine(Time);
                 if (Candles.Count % 10 == 0)
-                    Export.WriteJson(Candles, Accumulations, zigZag, null, @"C:\Users\user\Desktop\tvjs-xp-main\src\apps", "data.json");
+                    Export.WriteJson(Candles, Accumulations, zigZag, null,null, @"C:\Users\user\Desktop\tvjs-xp-main\src\apps", "data.json");
             }
         }
 

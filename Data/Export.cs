@@ -11,29 +11,51 @@ namespace TradeBot.Data
 {
     class Export
     {
-        public static void WriteJson(List<Candle> candles, List<Accumulation> accumulation, List<Dot> zag, List<Mark> marks, string dir, string fileName)
+        public static void WriteJson(List<Candle> candles, List<Accumulation> accumulation, List<Dot> zag
+                        , List<Mark> marks, List<Segment> segments, string dir, string fileName)
         {
-            var accum = new List<Accum>();
-            foreach (var t in accumulation)
-            {
-                accum.Add(new Accum("Base", t.Type, new string[0],
-                            new Settings(t.StartTimeStamp, t.LowPrice, t.EndTimeStamp, t.HighPrice)));
-            }
-
             var chart = new Dictionary<string, List<decimal[]>>() { { "data", candles
                                         .Select(c => new[] { c.TimeStamp, c.Open, c.High, c.Low, c.Close }).ToList() } };
-            var zigzag = new List<Segment>();
-            for (int n = 1; n < zag.Count; n++)
+
+
+            var accum = new List<Accum>();
+            if (accumulation != null)
             {
-                zigzag.Add(new Segment("Line", "", new string[0],
-                            new SegmentSettings(new decimal[] { zag[n - 1].TimeStamp, zag[n - 1].Price },
-                                                new decimal[] { zag[n].TimeStamp, zag[n].Price }, 2, false)));
+                foreach (var t in accumulation)
+                {
+                    accum.Add(new Accum("Base", t.Type, new string[0],
+                                new AccumSettings(t.StartTimeStamp, t.LowPrice, t.EndTimeStamp, t.HighPrice)));
+                }
             }
+
+            var zigzag = new List<JsonSegment>();
+
+            if (zag != null)
+            {
+                for (int n = 1; n < zag.Count; n++)
+                {
+                    zigzag.Add(new JsonSegment("Line", "", new string[0],
+                                new JsonSegmentSettings(new decimal[] { zag[n - 1].TimeStamp, zag[n - 1].Price },
+                                                    new decimal[] { zag[n].TimeStamp, zag[n].Price }, 2, false)));
+                }
+            }
+        
             var output = new List<object>(accum);
             output.AddRange(zigzag);
-            var mmarks =  marks.Select(c => new object[] { c.TimeStamp, c.Text, c.num1, c.Color, c.num2 } ).ToList()  ;
-            var asdas = new Marks() { type = "Splitters", name = "Data", data = mmarks.ToArray() };
-            output.Add(asdas);
+
+            //var mmarks =  marks.Select(c => new object[] { c.TimeStamp, c.Text, c.num1, c.Color, c.num2 } ).ToList()  ;
+            //var asdas = new Marks() { type = "Splitters", name = "Data", data = mmarks.ToArray() };
+            //output.Add(asdas);
+
+            var lines = new List<JsonSegment>();
+            for (int n = 0; n < segments.Count; n++)
+            {
+                lines.Add(new JsonSegment("Line", "", new string[0],
+                            new JsonSegmentSettings(new decimal[] { segments[n].FirstDot.TimeStamp, segments[n].FirstDot.Price },
+                                                new decimal[] { segments[n].SecondDot.TimeStamp, segments[n].SecondDot.Price }, 2, false, "#FFFF00")));
+            }
+            output.AddRange(lines);
+
             var outJsonStruct = new Dictionary<string, object>() { { "onchart", output }, { "chart", chart } };
             var options = new JsonSerializerOptions { WriteIndented = true, };
             var result = JsonSerializer.Serialize(outJsonStruct, options);
@@ -176,7 +198,7 @@ namespace TradeBot.Data
     {
         List<BalanceHistory> BalanceHistory;
     }
-    public class SegmentSettings
+    public class MarkSettings
     {
         [JsonPropertyName("p1")]
         public decimal[] P1 { get; set; }
@@ -189,7 +211,7 @@ namespace TradeBot.Data
         [JsonPropertyName("color")]
         public string Color { get; set; }
 
-        public SegmentSettings(decimal[] p1, decimal[] p2, int lineWidth, bool legend, string color = "#FFC0CB")
+        public MarkSettings(decimal[] p1, decimal[] p2, int lineWidth, bool legend, string color = "#FFC0CB")
         {
             P1 = p1;
             P2 = p2;
@@ -198,7 +220,7 @@ namespace TradeBot.Data
             Color = color;
         }
     }
-    public class Segment
+    public class Mark
     {
         [JsonPropertyName("name")]
         public string Name { get; set; }
@@ -207,9 +229,9 @@ namespace TradeBot.Data
         [JsonPropertyName("data")]
         public string[] Data { get; set; }
         [JsonPropertyName("settings")]
-        public SegmentSettings Settings { get; set; }
+        public MarkSettings Settings { get; set; }
 
-        public Segment(string name, string type, string[] data, SegmentSettings settings)
+        public Mark(string name, string type, string[] data, MarkSettings settings)
         {
             Name = name;
             Type = "Segment";
@@ -244,9 +266,9 @@ namespace TradeBot.Data
         [JsonPropertyName("data")]
         public string[] Data { get; set; }
         [JsonPropertyName("settings")]
-        public Settings Settings { get; set; }
+        public AccumSettings Settings { get; set; }
 
-        public Accum(string name, AccumulationType type, string[] data, Settings settings)
+        public Accum(string name, AccumulationType type, string[] data, AccumSettings settings)
         {
             Name = name;
             Type = "Square";
@@ -254,7 +276,7 @@ namespace TradeBot.Data
             Settings = settings;
         }
     }
-    public class Settings
+    public class AccumSettings
     {
         [JsonPropertyName("t1")]
         public long T1 { get; set; }
@@ -269,7 +291,7 @@ namespace TradeBot.Data
         [JsonPropertyName("z-index")]
         public int ZIndex { get; set; }
 
-        public Settings(long time1, decimal price1, long time2, decimal price2, string color = "#27d588", int zIndex = 0)
+        public AccumSettings(long time1, decimal price1, long time2, decimal price2, string color = "#27d588", int zIndex = 0)
         {
             T1 = time1;
             Price1 = price1;
@@ -291,4 +313,58 @@ namespace TradeBot.Data
     {
         public List<Dot> zigZag { get; set; }
     }
+
+    //"name": "Line1",
+    //"type": "Segment",
+    //"data": [],
+    //"settings": {
+    //    "p1": [1555732800000, 5405],
+    //    "p2": [1555948800000, 5306],
+    //    "lineWidth": 1,
+    //    "legend": false
+    //}
+    public class JsonSegment
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+        [JsonPropertyName("type")]
+        public string Type { get; set; }
+        [JsonPropertyName("data")]
+        public string[] Data { get; set; }
+        [JsonPropertyName("settings")]
+        public JsonSegmentSettings Settings { get; set; }
+
+        public JsonSegment(string name, string type, string[] data, JsonSegmentSettings settings)
+        {
+            Name = name;
+            Type = "Segment";
+            Data = data;
+            Settings = settings;
+        }
+    }
+
+    public class JsonSegmentSettings
+    {
+        [JsonPropertyName("p1")]
+        public decimal[] P1 { get; set; }
+        [JsonPropertyName("p2")]
+        public decimal[] P2 { get; set; }
+        [JsonPropertyName("lineWidth")]
+        public int LineWidth { get; set; }
+        [JsonPropertyName("legend")]
+        public bool Legend { get; set; }
+        [JsonPropertyName("color")]
+        public string Color { get; set; }
+
+        public JsonSegmentSettings(decimal[] p1, decimal[] p2, int lineWidth, bool legend, string color = "#FFC0CB")
+        {
+            P1 = p1;
+            P2 = p2;
+            LineWidth = lineWidth;
+            Legend = legend;
+            Color = color;
+        }
+    }
+   
+
 }
