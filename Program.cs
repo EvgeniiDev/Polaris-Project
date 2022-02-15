@@ -13,7 +13,7 @@ namespace TradeBot
         {
             var dataParser = new BinanceConnector();
             var candles = await dataParser.GetCandles("ETHUSDT", KlineInterval.OneDay,
-                                                new DateTime(2021, 8, 24), new DateTime(2022, 2, 15));
+                                                new DateTime(2014, 8, 24), new DateTime(2022, 2, 15));
             //var candless = new List<Candle>();
             //var zigzag = ZigZag.CalculatePriceStructLight(candles, 1);
             var zigzag = ZigZag.CalculateZigZag(candles, 5m);
