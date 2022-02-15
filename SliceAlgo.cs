@@ -55,34 +55,42 @@ namespace TradeBot
             var boxes = new List<Accumulation>();
             for (int i = 0; i < zigZag.Count; i++)
             {
-                var lastBox = new Accumulation()
-                {
-                    EndTimeStamp = 0,
-                    LowPrice = 0,
-                    StartTimeStamp = 0,
-                    HighPrice = 0,
-                    Type = 0
-                };
-                for (int j = i + minAmountCandles; j < Math.Min(zigZag.Count, i + maxAmountCandles); j++)
+                Accumulation foundedBox = null;
+                for (int j = Math.Min(zigZag.Count, i + maxAmountCandles); j > i + minAmountCandles; j--)
                 {
                     var section = zigZag.GetRange(i, j - i);
                     var y = isAccum(section);
                     if (y.Item1)
                     {
-                        lastBox = (new Accumulation()
+                        foundedBox = (new Accumulation()
                         {
-                            EndTimeStamp = section[0].TimeStamp,
+                            StartTimeStamp = section.First().TimeStamp,
                             LowPrice = y.Item2,
-                            StartTimeStamp = section[section.Count - 1].TimeStamp,
+                            EndTimeStamp = section.Last().TimeStamp,
                             HighPrice = y.Item3,
                             Type = AccumulationType.Rectangle
                         });
+                        //Можно оптимизировать ,если не создавать foundedBox
+                        if (boxes.Count > 0 && boxes.Last().EndTimeStamp >= foundedBox.StartTimeStamp)
+                        {
+                            var last = boxes.Last();
+                            var newBox = (new Accumulation()
+                            {
+                                StartTimeStamp = Math.Min(last.StartTimeStamp, foundedBox.StartTimeStamp),
+                                LowPrice = Math.Min(last.LowPrice, foundedBox.LowPrice),
+                                EndTimeStamp = Math.Max(last.EndTimeStamp, foundedBox.EndTimeStamp),
+                                HighPrice = Math.Max(last.HighPrice, foundedBox.HighPrice),
+                                Type = AccumulationType.Rectangle
+                            });
+                            boxes.RemoveAt(boxes.Count() - 1);
+                            boxes.Add(newBox);
+                        }
+                        else
+                        {
+                            boxes.Add(foundedBox);
+                        }
                     }
                 }
-
-                if (lastBox.EndTimeStamp != 0
-                    && !boxes.Select(x => x.EndTimeStamp).Contains(lastBox.EndTimeStamp))
-                    boxes.Add(lastBox);
             }
             return boxes;
         }
