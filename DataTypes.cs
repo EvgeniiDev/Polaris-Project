@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace TradeBot
@@ -93,7 +93,6 @@ namespace TradeBot
         {
             return $"{Text} : {TimeStamp.ToDateTime()}";
         }
-
     }
     //{
     //    "name": "Line1",
@@ -134,6 +133,7 @@ namespace TradeBot
         CompressionUp,
         CompressionDown
     }
+
 
     public enum LineType
     {
