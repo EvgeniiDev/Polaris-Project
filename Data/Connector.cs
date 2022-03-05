@@ -1,6 +1,6 @@
 ﻿namespace TradeBot.Data
 {
-    class Config
+    internal class Connector
     {
     }
 }
