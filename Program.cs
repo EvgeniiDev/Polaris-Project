@@ -11,6 +11,7 @@ namespace TradeBot
     {
         static async Task Main(string[] args)
         {
+
             var dataParser = new BinanceConnector();
            // var candles = await dataParser.GetCandles("ETHUSDT", KlineInterval.OneDay,
            //                                     new DateTime(2014, 8, 24), new DateTime(2022, 2, 15));
@@ -31,6 +32,7 @@ namespace TradeBot
             //    foreach(var b in allowedTimeFrame)
             //        new DataWorker { Pair = a, TimeFrame = b }.Run();
 
+
             //var a = new DataWorker { Pair ="BTCUSDT", TimeFrame= KlineInterval.FiveMinutes };
             //a.Run();
             //Thread.Sleep(15000);
@@ -45,12 +47,6 @@ namespace TradeBot
             Console.WriteLine("Data has been saved to file");
             //AdminConnector.Server();
             Console.ReadKey();
-        }
-
-
-        public List<Accumulation> Merge()
-        {
-            return null;
         }
     }
 }
