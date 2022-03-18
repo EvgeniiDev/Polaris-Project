@@ -17,55 +17,57 @@ namespace TradeBot.Data
             var chart = new Dictionary<string, List<decimal[]>>() { { "data", candles
                                         .Select(c => new[] { c.TimeStamp, c.Open, c.High, c.Low, c.Close }).ToList() } };
 
-
-            var accum = new List<Accum>();
+            var output = new List<object>();
+            
             if (accumulation != null)
             {
+                var accum = new List<Accum>();
                 foreach (var t in accumulation)
                 {
                     accum.Add(new Accum("Base", t.Type, new string[0],
                                 new AccumSettings(t.StartTimeStamp, t.LowPrice, t.EndTimeStamp, t.HighPrice)));
                 }
+                output.Add(accum);
             }
-
-            var zigzag = new List<JsonSegment>();
 
             if (zag != null)
             {
+                var zigzag = new List<JsonSegment>();
                 for (int n = 1; n < zag.Count; n++)
                 {
                     zigzag.Add(new JsonSegment("Line", "", new string[0],
                                 new JsonSegmentSettings(new decimal[] { zag[n - 1].TimeStamp, zag[n - 1].Price },
                                                     new decimal[] { zag[n].TimeStamp, zag[n].Price }, 2, false)));
                 }
+                output.AddRange(zigzag);
             }
-        
-            var output = new List<object>(accum);
-            output.AddRange(zigzag);
+       
 
             //var mmarks =  marks.Select(c => new object[] { c.TimeStamp, c.Text, c.num1, c.Color, c.num2 } ).ToList()  ;
             //var asdas = new Marks() { type = "Splitters", name = "Data", data = mmarks.ToArray() };
             //output.Add(asdas);
 
-            var lines = new List<JsonSegment>();
-            for (int n = 0; n < segments.Count; n++)
+            if (segments != null)
             {
-                lines.Add(new JsonSegment("Line", "", new string[0],
-                            new JsonSegmentSettings(new decimal[] { segments[n].FirstDot.TimeStamp, segments[n].FirstDot.Price },
-                                                new decimal[] { segments[n].SecondDot.TimeStamp, segments[n].SecondDot.Price }, 2, false, "#FFFF00")));
+                var lines = new List<JsonSegment>();
+                for (int n = 0; n < segments.Count; n++)
+                {
+                    lines.Add(new JsonSegment("Line", "", new string[0],
+                                new JsonSegmentSettings(new decimal[] { segments[n].FirstDot.TimeStamp, segments[n].FirstDot.Price },
+                                                    new decimal[] { segments[n].SecondDot.TimeStamp, segments[n].SecondDot.Price }, 2, false, "#FFFF00")));
+                }
+                output.AddRange(lines);
             }
-            output.AddRange(lines);
 
             var outJsonStruct = new Dictionary<string, object>() { { "onchart", output }, { "chart", chart } };
             var options = new JsonSerializerOptions { WriteIndented = true, };
             var result = JsonSerializer.Serialize(outJsonStruct, options);
 
             Directory.CreateDirectory(dir);
-            if (File.Exists($"{dir}\\{fileName}"))
-            {
-                File.Delete($"{dir}\\{fileName}");
-            }
-            File.WriteAllText($"{dir}\\{fileName}", result);
+            var path = $"{dir}\\{fileName}";
+            if (File.Exists(path))
+                File.Delete(path);
+            File.WriteAllText(path, result);
         }
 
         public static void SaveCandles(List<Candle> candles, string dir, string fileName)
@@ -75,9 +77,10 @@ namespace TradeBot.Data
             asdas.candles = candles;
             var result = JsonSerializer.Serialize(asdas, options);
             Directory.CreateDirectory(dir);
-            if (File.Exists($"{dir}\\{fileName}"))
-                File.Delete($"{dir}\\{fileName}");
-            File.WriteAllText($"{dir}\\{fileName}", result);
+            var path = $"{dir}\\{fileName}";
+            if (File.Exists(path))
+                File.Delete(path);
+            File.WriteAllText(path, result);
         }
         public static void SaveAccums(List<Accumulation> accumulations, string dir, string fileName)
         {
@@ -86,9 +89,10 @@ namespace TradeBot.Data
             var result = JsonSerializer.Serialize(asdas, options);
 
             Directory.CreateDirectory(dir);
-            if (File.Exists($"{dir}\\{fileName}"))
-                File.Delete($"{dir}\\{fileName}");
-            File.WriteAllText($"{dir}\\{fileName}", result);
+            var path = $"{dir}\\{fileName}";
+            if (File.Exists(path))
+                File.Delete(path);
+            File.WriteAllText(path, result);
         }
         public static void SaveZigZag(List<Dot> zigZag, string dir, string fileName)
         {
@@ -97,9 +101,10 @@ namespace TradeBot.Data
             var result = JsonSerializer.Serialize(asdas, options);
 
             Directory.CreateDirectory(dir);
-            if (File.Exists($"{dir}\\{fileName}"))
-                File.Delete($"{dir}\\{fileName}");
-            File.WriteAllText($"{dir}\\{fileName}", result);
+            var path = $"{dir}\\{fileName}";
+            if (File.Exists(path))
+                File.Delete(path);
+            File.WriteAllText(path, result);
         }
 
         public static List<Accumulation> GetAccumsFromDB(string dir, string fileName)

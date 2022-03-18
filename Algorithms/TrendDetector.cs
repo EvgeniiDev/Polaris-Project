@@ -20,9 +20,7 @@ namespace TradeBot
             var startTrend = dots[0].Price < dots[2].Price ? Trend.Up : Trend.Down;
             var currentTrend = startTrend;
 
-            Console.WriteLine(startTrend);
-
-            for (int n = 2; n < dots.Count; n++)
+            for (int n = 3; n < dots.Count; n++)
             {
                 var t = 0.05m;
                 if (currentTrend == Trend.Up && dots[n - 1].Price > dots[n - 0].Price && dots[n - 1].Price > dots[n - 2].Price)
@@ -40,8 +38,11 @@ namespace TradeBot
                     else if (dots[n - 2].Price > dots[n - 0].Price)
                     {
                         //Console.WriteLine($"ПП в short {dots[n - 2]}");
-                        result.Add(new Segment(dots[lastPPNum].TimeStamp, dots[lastPPNum].Price,
+                        if (lastPPNum != -1)
+                        {
+                            result.Add(new Segment(dots[lastPPNum].TimeStamp, dots[lastPPNum].Price,
                                     dots[lastPPNum].TimeStamp + 500000000, dots[lastPPNum].Price));
+                        }
                         if (lastSlomNum != -1)
                         {
                             result.Add(new Segment(dots[lastSlomNum].TimeStamp, dots[lastSlomNum].Price,
@@ -67,8 +68,11 @@ namespace TradeBot
                     else if (dots[n - 2].Price < dots[n - 0].Price)
                     {
                         //Console.WriteLine($"ПП в short {dots[n - 2]}");
-                        result.Add(new Segment(dots[lastPPNum].TimeStamp, dots[lastPPNum].Price,
+                        if (lastPPNum != -1)
+                        {
+                            result.Add(new Segment(dots[lastPPNum].TimeStamp, dots[lastPPNum].Price,
                                     dots[lastPPNum].TimeStamp + 500000000, dots[lastPPNum].Price));
+                        }
                         if (lastSlomNum != -1)
                         {
                             result.Add(new Segment(dots[lastSlomNum].TimeStamp, dots[lastSlomNum].Price,
