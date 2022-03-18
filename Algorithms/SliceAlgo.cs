@@ -213,7 +213,7 @@ namespace TradeBot
         public static decimal GetMedian(List<decimal> sourceNumbers)
         {
             if (sourceNumbers == null || sourceNumbers.Count == 0)
-                throw new System.Exception("Median of empty array not defined.");
+                throw new Exception("Median of empty array not defined.");
 
             var sortedPNumbers = new List<decimal>(sourceNumbers);
             sortedPNumbers.Sort();

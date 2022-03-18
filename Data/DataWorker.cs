@@ -22,7 +22,6 @@ namespace TradeBot
         private bool IsStarted = false;
         public void Run()
         {
-
             //Timer t = new Timer(1000);
             //t.AutoReset = true;
             //t.Elapsed += new ElapsedEventHandler(CheckNewData);
@@ -31,28 +30,24 @@ namespace TradeBot
             CheckNewData();
         }
 
-        private async void CheckNewData()
+        private async Task CheckNewData()
         {
             while (IsStarted)
             {
                 var lastCandles = await parser.GetCandles(Pair, TimeFrame, Time, Time);
 
-                if (lastCandles.Count == 0)
+                if (lastCandles.Count != 0)
                 {
-                    continue;
+                    if (Candles.Count > 0 && Candles.Last() != lastCandles.First())
+                        await DataProcessing();
+                    Candles.AddRange(lastCandles);
+                    var timeOfLastData = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                    timeOfLastData = timeOfLastData.AddMilliseconds(Candles.Last().TimeStamp);
+                    Time = timeOfLastData.AddSeconds((int)GetSeconds(TimeFrame));
+                    Console.WriteLine(Time);
+                    if (Candles.Count % 100 == 0)
+                        Export.WriteJson(Candles, Accumulations, zigZag, null, null, @"C:\Users\user\Desktop\tvjs-xp-main\src\apps", "data.json");
                 }
-                if (lastCandles.Count > 0 && Candles.Count > 0 && Candles.Last() != lastCandles.First())
-                {
-                    await DataProcessing();
-                }
-
-                Candles.AddRange(lastCandles);
-                var timeOfLastData = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                timeOfLastData = timeOfLastData.AddMilliseconds(Candles.Last().TimeStamp);
-                Time = timeOfLastData.AddSeconds((int)GetSeconds(TimeFrame));
-                Console.WriteLine(Time);
-                if (Candles.Count % 10 == 0)
-                    Export.WriteJson(Candles, Accumulations, zigZag, null,null, @"C:\Users\user\Desktop\tvjs-xp-main\src\apps", "data.json");
             }
         }
 
@@ -90,12 +85,14 @@ namespace TradeBot
         {
             throw new NotImplementedException();
         }
+        
         public void ImportData()
         {
             var candles = Export.GetCandlesFromDB($".\\data\\{Pair}", $"{TimeFrame}-candles.json");
             var accumulations = Export.GetAccumsFromDB($".\\data\\{Pair}", $"{TimeFrame}-accums.json");
             var zigZag = Export.GetZigZagFromDB($".\\data\\{Pair}", $"{TimeFrame}-zigzag.json");
         }
+        
         private void ExportData()
         {
             //Export.WriteJson(Candles, Accumulations, zigZag, $".\\data\\{Pair}", $"{TimeFrame}-candles.json");
@@ -104,21 +101,6 @@ namespace TradeBot
             Export.SaveZigZag(zigZag, $".\\data\\{Pair}", $"{TimeFrame}-zigzag.json");
             //save data to json
             //save data to db
-        }
-        private static void JoinBoxes(List<Accumulation> accumulations)
-        {
-            ;
-            foreach (var a in accumulations.ToList())
-            {
-                foreach (var t in accumulations.ToList())
-                {
-                    if (a.StartTimeStamp < t.StartTimeStamp && t.EndTimeStamp < a.EndTimeStamp)
-                    {
-                        accumulations.Remove(t);
-                    }
-                }
-            }
-
         }
 
         private static TimeFrame GetSeconds(KlineInterval timeFrame)
