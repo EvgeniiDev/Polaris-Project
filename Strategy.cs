@@ -6,17 +6,38 @@ using System.Threading.Tasks;
 
 namespace TradeBot
 {
-    internal class Strategy
+    internal class Strategy: IStrategy
     {
-        //EntryPatterns()
-        //StopPatterns()
-        //TakePatterns()
 
-        //Entry()
-        //Take()
-        //Stop()
+        public void Init()
+        {
+            //выполняет подписку на необходимые события для работы стратегии
+        }
+        public Strategy()
+        {
+            //slom += EntryPatterns;
+            //pp += EntryPatterns;
 
+            //add паттерн входа от уровня
+            //newLevel += EntryPatterns;
+            //newBase += EntryPatterns;
+        }
+        public void EntryPatterns()
+        {
 
+        }
+        public void StopPatterns()
+        {
 
+        }
+        public void TakePatterns()
+        {
+
+        }
+
+        private bool CheckRiskProfitFactor(decimal entry, decimal take, decimal stop)
+        {
+            return Math.Abs(take - entry) / Math.Abs(entry - stop) > 2;
+        }
     }
 }

@@ -36,7 +36,7 @@ namespace TradeBot
             {
                 var lastCandles = await parser.GetCandles(Pair, TimeFrame, Time, Time);
 
-                if (lastCandles.Count != 0)
+                if (lastCandles.Count() != 0)
                 {
                     if (Candles.Count > 0 && Candles.Last() != lastCandles.First())
                         await DataProcessing();
