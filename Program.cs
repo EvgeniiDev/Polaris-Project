@@ -1,9 +1,6 @@
-﻿using Binance.Net.Enums;
-using ExchangeConnectors;
+﻿using ExchangeConnectors;
 using System;
 using System.Threading.Tasks;
-using TradeBot.Data;
-using TrueRealExchange;
 using static ExchangeConnectors.TimeFrames;
 
 namespace TradeBot
@@ -13,20 +10,20 @@ namespace TradeBot
         static async Task Main()
         {
 
-            var bConnector = (IExchange)new BinanceConnector();
+            var bConnector = (IExchange) new BinanceConnector();
            // var exch = new Exchange(bConnector);
            // //var account = new Account();
             var candles = await bConnector.GetCandles("ETHUSDT", TimeFrame.D1,
                                                new DateTime(2014, 8, 24), new DateTime(2022, 2, 15));
            // //var candless = new List<Candle>();
-           // //var zigzag = ZigZag.CalculatePriceStructLight(candles, 1);
+           //var zigzag = ZigZag.CalculatePriceStructLight(candles, 1);
 
            // //var dataParser = new DataParser();
            // var candles = await bConnector.GetCandles("ETHUSDT", KlineInterval.OneDay,
            //                                     new DateTime(2021, 8, 24), new DateTime(2021, 12, 11));
 
-           // //var zigzag = ZigZag.CalculateZigZag(candles, 5m);
-           // var accumulations = SliceAlgorithm.FindBoxes(candles).ToList();
+            var zigzag = ZigZag.CalculateZigZag(candles, 5m);
+            var accumulations = SliceAlgorithm.FindBoxes(candles);
             
            // //JoinBoxes(accumulations);
            // var allowedPair =  new [] { "BTCUSDT", "ETHUSDT" };

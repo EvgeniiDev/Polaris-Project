@@ -1,3 +1,4 @@
+using ExchangeConnectors;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -33,11 +34,11 @@ namespace TradeBot
     {
         public Candle(long timeStamp, decimal open, decimal high, decimal low, decimal close)
         {
-            this.TimeStamp = timeStamp;
-            this.Open = open;
-            this.High = high;
-            this.Low = low;
-            this.Close = close;
+            TimeStamp = timeStamp;
+            Open = open;
+            High = high;
+            Low = low;
+            Close = close;
         }
         [JsonPropertyName("timeStamp")]
         public long TimeStamp { get; set; }

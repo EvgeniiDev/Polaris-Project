@@ -50,7 +50,7 @@ namespace TradeBot
             return touches;
         }
         //TODO interface
-        public static List<Accumulation> FindBoxes(List<Candle> zigZag)
+        public static List<Accumulation> FindBoxes(List<ExchangeConnectors.Candle> zigZag)
         {
             var boxes = new List<Accumulation>();
             for (int i = 0; i < zigZag.Count; i++)
@@ -94,7 +94,7 @@ namespace TradeBot
             }
             return boxes;
         }
-        private static (bool, decimal, decimal) isAccum(List<Candle> section)
+        private static (bool, decimal, decimal) isAccum(List<ExchangeConnectors.Candle> section)
         {
             const int resolution = 40;
             (Dot ATL, Dot ATH) = GetMaxsAndMins(section);
@@ -126,7 +126,7 @@ namespace TradeBot
             return (checkProjectionOfBox(0.65m, section) && IsStable(section)
                     && checkSquareOfBox(0.36m, section), box.Min(), box.Max());
         }
-        private static bool checkProjectionOfBox(decimal kFactor, List<Candle> section)
+        private static bool checkProjectionOfBox(decimal kFactor, List<ExchangeConnectors.Candle> section)
         {
             const int resolution = 40;
             (Dot ATL, Dot ATH) = GetMaxsAndMins(section);
@@ -154,7 +154,7 @@ namespace TradeBot
             }
             return resolution * kFactor >= box.Count();
         }
-        private static bool checkSquareOfBox(decimal kFactor, List<Candle> section)
+        private static bool checkSquareOfBox(decimal kFactor, List<ExchangeConnectors.Candle> section)
         {
             var sectionSquare = (section.Select(x => x.High).Max() - section.Select(x => x.Low).Min()) * (section.Count);
             var candlesSquare = 0m;
@@ -169,7 +169,7 @@ namespace TradeBot
         {
             return sourceNumbers.Sum() / sourceNumbers.Count;
         }
-        private static bool IsStable(List<Candle> section)
+        private static bool IsStable(List<ExchangeConnectors.Candle> section)
         {
             var medianDelta = new List<decimal>();
             decimal maxMedian = 0;
@@ -181,7 +181,7 @@ namespace TradeBot
             var median = GetMedian(medianDelta);
             return maxMedian * StableFactor < median;
         }
-        private static void ExtendBox(List<Candle> zigZag, List<Candle> section)
+        private static void ExtendBox(List<ExchangeConnectors.Candle> zigZag, List<ExchangeConnectors.Candle> section)
         {
             var a = section.OrderBy(x => x.High).ToList();
             var topBorder = a[a.Count() - 1].High; // firstMax, secondMax
@@ -223,7 +223,7 @@ namespace TradeBot
                                 ((decimal)sortedPNumbers[mid] + (decimal)sortedPNumbers[mid - 1]) / 2;
             return median;
         }
-        public static (Dot, Dot) GetMaxsAndMins(List<Candle> dots)
+        public static (Dot, Dot) GetMaxsAndMins(List<ExchangeConnectors.Candle> dots)
         {
             var a = dots.OrderBy(x => x.High).ToList();
             var highDots = new Dot(a[a.Count - 1].TimeStamp, a[a.Count - 1].High); // firstMax, secondMax

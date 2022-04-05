@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ExchangeConnectors;
 
 namespace TradeBot
 {
     public static class ZigZag
     {
-        public static List<Dot> CalculatePriceStructLight(List<Candle> candles, float deviationInPercent)
+        public static List<Dot> CalculatePriceStructLight(List<ExchangeConnectors.Candle> candles, float deviationInPercent)
         {
             var zigZag = new List<Dot>();
             if (candles.Count < 2)
@@ -39,20 +40,22 @@ namespace TradeBot
             return zigZag;
         }
 
-        public static List<Dot> CalculateZigZag(List<Candle> candles, decimal deviationInPercent)
+        public static List<Dot> CalculateZigZag(List<ExchangeConnectors.Candle> candles, decimal deviationInPercent)
         {
-            candles = candles.Where(x => x != null).ToList();
+            candles = candles.Where(x => x is not null).ToList();
             bool swingHigh = false, swingLow = false;
             var obsLow = 0;
             var obsHigh = 0;
             var obsStart = 0;
             var zigZag = new List<Dot>();
+
             for (int obs = obsStart; obs < candles.Count; obs++)
             {
                 var candlesHighObs = (candles[obs].High + Math.Max(candles[obs].Open, candles[obs].Close)) / 2;
                 var candlesHighObsHigh = (candles[obsHigh].High + Math.Max(candles[obsHigh].Open, candles[obsHigh].Close)) / 2;
                 var candlesLowObsLow = (candles[obsLow].Low + Math.Min(candles[obsLow].Open, candles[obsLow].Close)) / 2;
                 var candlesLowObs = (candles[obs].Low + Math.Min(candles[obs].Open, candles[obs].Close)) / 2;
+
                 if (candlesHighObs > candlesHighObsHigh)
                 {
                     obsHigh = obs;
@@ -74,13 +77,16 @@ namespace TradeBot
                         swingHigh = true;
                         swingLow = false;
                     }
-                    if (swingHigh) obsHigh = obsLow;
+                    if (swingHigh)
+                        obsHigh = obsLow;
                 }
             }
+
             if(swingHigh)
                 zigZag.Add(new Dot(candles[obsHigh].TimeStamp, candles[obsHigh].High));
             else
                 zigZag.Add(new Dot(candles[obsHigh].TimeStamp, candles[obsHigh].Low));
+
             return zigZag;
         }
     }
