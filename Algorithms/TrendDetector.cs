@@ -5,11 +5,15 @@ namespace TradeBot
 {
     class TrendDetector
     {
-        private List<Dot> ppUp = new List<Dot>();
-        public TrendDetector()
-        {
-        }
-        public List<Segment> TrendDetect(List<Dot> dots)
+        public static event Action PPDetected;
+        public static event Action SlomDetected;
+
+        //public static event Action PPUpDetected;
+        //public static event Action SlomUpDetected;
+        //public static event Action PPDownDetected;
+        //public static event Action SlomDownDetected;
+
+        public static List<Segment> TrendDetect(List<Dot> dots)
         {
             if (dots.Count < 2)
                 throw new Exception("Мало данных");
@@ -26,29 +30,33 @@ namespace TradeBot
                 if (currentTrend == Trend.Up && dots[n - 1].Price > dots[n - 0].Price && dots[n - 1].Price > dots[n - 2].Price)
                 {
                     if (dots[n - 1].Price > dots[n - 3].Price)
-                    {
                         lastPPNum = n - 2;
                         //Console.WriteLine(dots[lastPPNum]);
-                    }
+
                     if (dots[n - 0].Price > dots[n - 2].Price && dots[n - 1].Price > dots[n - 3].Price)
-                    {
                         lastSlomNum = n;
                         //Console.WriteLine(dots[lastSlomNum]);
-                    }
+
                     else if (dots[n - 2].Price > dots[n - 0].Price)
                     {
                         //Console.WriteLine($"ПП в short {dots[n - 2]}");
                         if (lastPPNum != -1)
                         {
                             result.Add(new Segment(dots[lastPPNum].TimeStamp, dots[lastPPNum].Price,
-                                    dots[lastPPNum].TimeStamp + 500000000, dots[lastPPNum].Price));
+                                                   dots[lastPPNum].TimeStamp + 500000000, dots[lastPPNum].Price));
+                            PPDetected();
+                            //PPDownDetected();
                         }
+
                         if (lastSlomNum != -1)
                         {
                             result.Add(new Segment(dots[lastSlomNum].TimeStamp, dots[lastSlomNum].Price,
-                                dots[lastSlomNum].TimeStamp + 500000000, dots[lastSlomNum].Price));
+                                                   dots[lastSlomNum].TimeStamp + 500000000, dots[lastSlomNum].Price));
+                            SlomDetected();
+                            //SlomDownDetected();
                             //Console.WriteLine($"Слом в short {lastSlom}");
                         }
+
                         currentTrend = Trend.Down;
                     }
                 }
@@ -56,28 +64,28 @@ namespace TradeBot
                 if (currentTrend == Trend.Down && dots[n - 1].Price < dots[n - 0].Price && dots[n - 1].Price < dots[n - 2].Price)
                 {
                     if (dots[n - 1].Price < dots[n - 3].Price)
-                    {
                         lastPPNum = n - 2;
                         //Console.WriteLine(dots[lastPPNum]);
-                    }
+
                     if (dots[n - 0].Price < dots[n - 2].Price && dots[n - 1].Price < dots[n - 3].Price)
-                    {
                         lastSlomNum = n;
-                        //Console.WriteLine(dots[lastSlomNum]);
-                    }
+
                     else if (dots[n - 2].Price < dots[n - 0].Price)
                     {
                         //Console.WriteLine($"ПП в short {dots[n - 2]}");
                         if (lastPPNum != -1)
                         {
                             result.Add(new Segment(dots[lastPPNum].TimeStamp, dots[lastPPNum].Price,
-                                    dots[lastPPNum].TimeStamp + 500000000, dots[lastPPNum].Price));
+                                                   dots[lastPPNum].TimeStamp + 500000000, dots[lastPPNum].Price));
+                            PPDetected();
+                            //PPUpDetected();
                         }
                         if (lastSlomNum != -1)
                         {
                             result.Add(new Segment(dots[lastSlomNum].TimeStamp, dots[lastSlomNum].Price,
-                                dots[lastSlomNum].TimeStamp + 500000000, dots[lastSlomNum].Price));
-                            //Console.WriteLine($"Слом в short {lastSlom}");
+                                                   dots[lastSlomNum].TimeStamp + 500000000, dots[lastSlomNum].Price));
+                            SlomDetected();
+                            //SlomUpDetected();
                         }
                         currentTrend = Trend.Up;
                     }
@@ -118,7 +126,6 @@ namespace TradeBot
             //        currentTrend = Trend.Up;
             //    }
             //}
-
             return result;
         }
         public enum Trend
@@ -126,11 +133,6 @@ namespace TradeBot
             Down,
             Up,
             Side
-        }
-        public enum DotType
-        {
-            Low,
-            High
         }
     }
 }

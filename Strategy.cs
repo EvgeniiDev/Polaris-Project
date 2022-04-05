@@ -11,6 +11,7 @@ namespace TradeBot
 
         public void Init()
         {
+            EventsCatalog.PP += () => EntryHandler();
             //выполняет подписку на необходимые события для работы стратегии
         }
         public Strategy()
@@ -22,7 +23,7 @@ namespace TradeBot
             //newLevel += EntryPatterns;
             //newBase += EntryPatterns;
         }
-        public void EntryPatterns()
+        public void EntryHandler()
         {
 
         }

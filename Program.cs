@@ -1,19 +1,23 @@
-﻿using System;
+﻿using Binance.Net.Enums;
+using ExchangeConnectors;
+using System;
+using System.Threading.Tasks;
 using TradeBot.Data;
 using TrueRealExchange;
+using static ExchangeConnectors.TimeFrames;
 
 namespace TradeBot
 {
     class Program
     {
-        static void Main()
+        static async Task Main()
         {
 
-           // var bConnector = new BinanceConnector();
+            var bConnector = (IExchange)new BinanceConnector();
            // var exch = new Exchange(bConnector);
            // //var account = new Account();
-           //// var candles = await dataParser.GetCandles("ETHUSDT", KlineInterval.OneDay,
-           ////                                     new DateTime(2014, 8, 24), new DateTime(2022, 2, 15));
+            var candles = await bConnector.GetCandles("ETHUSDT", TimeFrame.D1,
+                                               new DateTime(2014, 8, 24), new DateTime(2022, 2, 15));
            // //var candless = new List<Candle>();
            // //var zigzag = ZigZag.CalculatePriceStructLight(candles, 1);
 
