@@ -9,17 +9,14 @@
 
   <ItemGroup>
     <Compile Remove="Core\**" />
-    <Compile Remove="Strategys\**" />
     <Compile Remove="StrategyTester\**" />
     <Compile Remove="Trader\**" />
     <Compile Remove="WebClient\**" />
     <EmbeddedResource Remove="Core\**" />
-    <EmbeddedResource Remove="Strategys\**" />
     <EmbeddedResource Remove="StrategyTester\**" />
     <EmbeddedResource Remove="Trader\**" />
     <EmbeddedResource Remove="WebClient\**" />
     <None Remove="Core\**" />
-    <None Remove="Strategys\**" />
     <None Remove="StrategyTester\**" />
     <None Remove="Trader\**" />
     <None Remove="WebClient\**" />

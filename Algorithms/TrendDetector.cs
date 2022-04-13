@@ -5,8 +5,8 @@ namespace TradeBot
 {
     class TrendDetector
     {
-        public static event Action PPDetected;
-        public static event Action SlomDetected;
+        public static event Action<Dot> PPDetected;
+        public static event Action<Dot> SlomDetected;
 
         //public static event Action PPUpDetected;
         //public static event Action SlomUpDetected;
@@ -21,6 +21,7 @@ namespace TradeBot
             var result = new List<Segment>();
             int lastPPNum = -1;
             int lastSlomNum = -1;
+
             var startTrend = dots[0].Price < dots[2].Price ? Trend.Up : Trend.Down;
             var currentTrend = startTrend;
 
@@ -44,7 +45,8 @@ namespace TradeBot
                         {
                             result.Add(new Segment(dots[lastPPNum].TimeStamp, dots[lastPPNum].Price,
                                                    dots[lastPPNum].TimeStamp + 500000000, dots[lastPPNum].Price));
-                            PPDetected();
+
+                            PPDetected(new Dot(dots[lastPPNum].TimeStamp, dots[lastPPNum].Price));
                             //PPDownDetected();
                         }
 
@@ -52,7 +54,8 @@ namespace TradeBot
                         {
                             result.Add(new Segment(dots[lastSlomNum].TimeStamp, dots[lastSlomNum].Price,
                                                    dots[lastSlomNum].TimeStamp + 500000000, dots[lastSlomNum].Price));
-                            SlomDetected();
+
+                            SlomDetected(new Dot(dots[lastSlomNum].TimeStamp, dots[lastSlomNum].Price));
                             //SlomDownDetected();
                             //Console.WriteLine($"Слом в short {lastSlom}");
                         }
@@ -77,14 +80,16 @@ namespace TradeBot
                         {
                             result.Add(new Segment(dots[lastPPNum].TimeStamp, dots[lastPPNum].Price,
                                                    dots[lastPPNum].TimeStamp + 500000000, dots[lastPPNum].Price));
-                            PPDetected();
+
+                            PPDetected(new Dot(dots[lastPPNum].TimeStamp, dots[lastPPNum].Price));
                             //PPUpDetected();
                         }
                         if (lastSlomNum != -1)
                         {
                             result.Add(new Segment(dots[lastSlomNum].TimeStamp, dots[lastSlomNum].Price,
                                                    dots[lastSlomNum].TimeStamp + 500000000, dots[lastSlomNum].Price));
-                            SlomDetected();
+
+                            SlomDetected(new Dot(dots[lastSlomNum].TimeStamp, dots[lastSlomNum].Price));
                             //SlomUpDetected();
                         }
                         currentTrend = Trend.Up;

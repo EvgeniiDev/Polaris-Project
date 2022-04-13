@@ -12,6 +12,7 @@ namespace TradeBot
         const int minCountTouchOfPrice = 3;
         const int minAmountOfCombinations = 1;
         const decimal StableFactor = 0.10m;
+
         public static (decimal, decimal) calcFactors(List<Dot> twoDots)
         {
             if (twoDots[1].TimeStamp - twoDots[0].TimeStamp == 0)
