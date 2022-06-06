@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DataTypes;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.IO;
@@ -309,10 +310,12 @@ namespace TradeBot.Data
     {
         public List<Candle> candles { get; set; }
     }
+
     public class Accums
     {
         public List<Accumulation> accums { get; set; }
     }
+
     public class Dots
     {
         public List<Dot> zigZag { get; set; }

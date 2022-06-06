@@ -1,24 +1,27 @@
 ﻿using Binance.Net.Enums;
+using DataTypes;
+using ExchangeConnectors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using TradeBot.Data;
+using static ExchangeConnectors.TimeFrames;
 
 namespace TradeBot
 {
     class DataWorker
     {
         public string Pair;
-        public KlineInterval TimeFrame = new();
+        public TimeFrame TimeFrame = new();
 
         private List<Candle> Candles = new();
         private List<Accumulation> Accumulations = new();
         private List<Dot> zigZag = new();
 
         private DateTime Time = new DateTime(2018, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        private BinanceConnector parser = new();
+        private IExchange parser;
         private bool IsStarted = false;
         public void Run()
         {
@@ -34,7 +37,7 @@ namespace TradeBot
         {
             while (IsStarted)
             {
-                var lastCandles = await BinanceConnector.GetCandles(Pair, TimeFrame, Time, Time);
+                var lastCandles = await parser.GetCandles(Pair, TimeFrame, Time, Time);
 
                 if (lastCandles.Count() != 0)
                 {
@@ -103,33 +106,9 @@ namespace TradeBot
             //save data to db
         }
 
-        private static TimeFrame GetSeconds(KlineInterval timeFrame)
+        private static int GetSeconds(TimeFrame timeFrame)
         {
-            switch (timeFrame)
-            {
-                case KlineInterval.OneMinute:
-                    return TradeBot.TimeFrame.m1;
-                case KlineInterval.FiveMinutes:
-                    return TradeBot.TimeFrame.m5;
-                case KlineInterval.FifteenMinutes:
-                    return TradeBot.TimeFrame.m15;
-                case KlineInterval.ThirtyMinutes:
-                    return TradeBot.TimeFrame.m30;
-                case KlineInterval.OneHour:
-                    return TradeBot.TimeFrame.h1;
-                case KlineInterval.FourHour:
-                    return TradeBot.TimeFrame.h4;
-                case KlineInterval.TwelveHour:
-                    return TradeBot.TimeFrame.h12;
-                case KlineInterval.OneDay:
-                    return TradeBot.TimeFrame.D1;
-                case KlineInterval.OneWeek:
-                    return TradeBot.TimeFrame.W1;
-                case KlineInterval.OneMonth:
-                    return TradeBot.TimeFrame.M1;
-                default:
-                    throw new Exception("Unknown timeframe!");
-            }
+            return (int)timeFrame;
         }
     }
 }

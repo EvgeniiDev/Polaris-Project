@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DataTypes;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using static ExchangeConnectors.TimeFrames;

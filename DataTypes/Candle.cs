@@ -1,4 +1,5 @@
-﻿namespace ExchangeConnectors
+﻿
+namespace DataTypes
 {
     public class Candle
     {

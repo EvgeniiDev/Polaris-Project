@@ -1,13 +1,13 @@
+using DataTypes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ExchangeConnectors;
 
 namespace TradeBot
 {
     public static class ZigZag
     {
-        public static List<Dot> CalculatePriceStructLight(List<ExchangeConnectors.Candle> candles, float deviationInPercent)
+        public static List<Dot> CalculatePriceStructLight(List<Candle> candles, float deviationInPercent)
         {
             var zigZag = new List<Dot>();
             if (candles.Count < 2)
@@ -40,7 +40,7 @@ namespace TradeBot
             return zigZag;
         }
 
-        public static List<Dot> CalculateZigZag(List<ExchangeConnectors.Candle> candles, decimal deviationInPercent)
+        public static List<Dot> CalculateZigZag(List<Candle> candles, decimal deviationInPercent)
         {
             candles = candles.Where(x => x is not null).ToList();
             bool swingHigh = false, swingLow = false;

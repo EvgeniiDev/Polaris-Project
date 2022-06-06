@@ -20,19 +20,19 @@ namespace TradeBot
         public decimal Price { get; set; }
     }
 
-    public class Graph
+    internal class Graph
     {
-        public List<Candle> Candles;
+        public List<DTOCandle> Candles;
 
-        public Graph(List<Candle> candles)
+        public Graph(List<DTOCandle> candles)
         {
             Candles = candles;
         }
     }
 
-    public class Candle
+    internal class DTOCandle
     {
-        public Candle(long timeStamp, decimal open, decimal high, decimal low, decimal close)
+        internal DTOCandle(long timeStamp, decimal open, decimal high, decimal low, decimal close)
         {
             TimeStamp = timeStamp;
             Open = open;
@@ -63,26 +63,26 @@ namespace TradeBot
         public AccumulationType Type { get; set; }
     }
 
-    public class Marks
+    internal class Marks
     {
         public string name { get; set; }
         public string type { get; set; }
         public object[] data { get; set; }
     }
-    public class Mark
+    internal class Mark
     {
         [JsonPropertyName("timeStamp")]
-        public long TimeStamp { get; set; }
+        internal long TimeStamp { get; set; }
         [JsonPropertyName("text")]
-        public string Text { get; set; }
+        internal string Text { get; set; }
         [JsonPropertyName("num1")]
-        public decimal num1 { get; set; }
+        internal decimal num1 { get; set; }
         [JsonPropertyName("color")]
-        public string Color { get; set; }
+        internal string Color { get; set; }
         [JsonPropertyName("num2")]
-        public decimal num2 { get; set; }
+        internal decimal num2 { get; set; }
 
-        public Mark(long timeStamp, string text, decimal v2, string color, decimal v3)
+        internal Mark(long timeStamp, string text, decimal v2, string color, decimal v3)
         {
             TimeStamp = timeStamp;
             Text = text;
@@ -106,7 +106,7 @@ namespace TradeBot
     //        "legend": false
     //    }
     //}
-    public class Segment
+    internal class Segment
     {
         public Dot FirstDot = new Dot(0, 0);
         public Dot SecondDot = new Dot(0, 0);
