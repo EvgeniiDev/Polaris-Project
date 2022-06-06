@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TradeBot", "TradeBot.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TrueRealExchange", "..\TrueRealExchange\TrueRealExchange\TrueRealExchange.csproj", "{F911339A-CC1C-426A-A849-E519849FCDE5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExchangeConnectors", "..\ExchangeConnectors\ExchangeConnectors.csproj", "{261D2ABC-D342-47D7-98FE-3138B80E7117}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExchangeConnectors", "..\ExchangeConnectors\ExchangeConnectors.csproj", "{261D2ABC-D342-47D7-98FE-3138B80E7117}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataTypes", "..\DataTypes\DataTypes.csproj", "{9018341C-6824-4270-B4B2-C298D28BFB09}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{261D2ABC-D342-47D7-98FE-3138B80E7117}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{261D2ABC-D342-47D7-98FE-3138B80E7117}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{261D2ABC-D342-47D7-98FE-3138B80E7117}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9018341C-6824-4270-B4B2-C298D28BFB09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9018341C-6824-4270-B4B2-C298D28BFB09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9018341C-6824-4270-B4B2-C298D28BFB09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9018341C-6824-4270-B4B2-C298D28BFB09}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

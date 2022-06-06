@@ -9,25 +9,20 @@
 
   <ItemGroup>
     <Compile Remove="Core\**" />
-    <Compile Remove="Strategys\**" />
     <Compile Remove="StrategyTester\**" />
     <Compile Remove="Trader\**" />
     <Compile Remove="WebClient\**" />
     <EmbeddedResource Remove="Core\**" />
-    <EmbeddedResource Remove="Strategys\**" />
     <EmbeddedResource Remove="StrategyTester\**" />
     <EmbeddedResource Remove="Trader\**" />
     <EmbeddedResource Remove="WebClient\**" />
     <None Remove="Core\**" />
-    <None Remove="Strategys\**" />
     <None Remove="StrategyTester\**" />
     <None Remove="Trader\**" />
     <None Remove="WebClient\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Binance.Net" Version="7.2.5" />
-    <PackageReference Include="MySql.Data" Version="8.0.27" />
     <PackageReference Include="SuperSocket.WebSocket.Server" Version="2.0.0-beta.10" />
   </ItemGroup>
 

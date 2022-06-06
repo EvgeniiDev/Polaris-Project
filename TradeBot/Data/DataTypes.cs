@@ -1,3 +1,4 @@
+using ExchangeConnectors;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -33,11 +34,11 @@ namespace TradeBot
     {
         public Candle(long timeStamp, decimal open, decimal high, decimal low, decimal close)
         {
-            this.TimeStamp = timeStamp;
-            this.Open = open;
-            this.High = high;
-            this.Low = low;
-            this.Close = close;
+            TimeStamp = timeStamp;
+            Open = open;
+            High = high;
+            Low = low;
+            Close = close;
         }
         [JsonPropertyName("timeStamp")]
         public long TimeStamp { get; set; }
@@ -140,20 +141,5 @@ namespace TradeBot
         Horizontal,
         Wane,
         Increase,
-    }
-
-    public enum TimeFrame
-    {
-        m1 = 60,
-        m5 = 300,
-        m15 = 900,
-        m30 = 1800,
-        h1 = 3600,
-        h4 = 14400,
-        h12 = 43200,
-        D1 = 86400,
-        D3 = 259200,
-        W1 = 604800,
-        M1 = 2592000
     }
 }

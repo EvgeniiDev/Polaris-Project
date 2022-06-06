@@ -8,17 +8,17 @@ using TradeBot.Data;
 
 namespace TradeBot
 {
-    class DataWorker : IDisposable
+    class DataWorker
     {
         public string Pair;
-        public KlineInterval TimeFrame = new KlineInterval();
+        public KlineInterval TimeFrame = new();
 
-        private List<Candle> Candles = new List<Candle>();
-        private List<Accumulation> Accumulations = new List<Accumulation>();
-        private List<Dot> zigZag = new List<Dot>();
+        private List<Candle> Candles = new();
+        private List<Accumulation> Accumulations = new();
+        private List<Dot> zigZag = new();
 
         private DateTime Time = new DateTime(2018, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        private BinanceConnector parser = new BinanceConnector();
+        private BinanceConnector parser = new();
         private bool IsStarted = false;
         public void Run()
         {
@@ -34,9 +34,9 @@ namespace TradeBot
         {
             while (IsStarted)
             {
-                var lastCandles = await parser.GetCandles(Pair, TimeFrame, Time, Time);
+                var lastCandles = await BinanceConnector.GetCandles(Pair, TimeFrame, Time, Time);
 
-                if (lastCandles.Count != 0)
+                if (lastCandles.Count() != 0)
                 {
                     if (Candles.Count > 0 && Candles.Last() != lastCandles.First())
                         await DataProcessing();
@@ -130,11 +130,6 @@ namespace TradeBot
                 default:
                     throw new Exception("Unknown timeframe!");
             }
-        }
-
-        void IDisposable.Dispose()
-        {
-            throw new NotImplementedException();
         }
     }
 }
