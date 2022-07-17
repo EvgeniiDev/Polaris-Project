@@ -1,9 +1,9 @@
 ﻿using System;
-using static DataObjects;
+using DataTypes;
 
 namespace TradeBot.Strategy
 {
-    internal class Order
+    public class Order
     {
         public OrderType Type { get; }
         public Status Status { get; set; }
@@ -25,7 +25,5 @@ namespace TradeBot.Strategy
             Status = Status.Open;
             Id = Guid.NewGuid();
         }
-
     }
-    
 }

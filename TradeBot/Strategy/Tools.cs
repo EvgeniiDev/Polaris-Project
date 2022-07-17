@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static ExchangeConnectors.TimeFrames;
+using DataTypes;
 
 namespace TradeBot.Strategy
 {
     public class Tools
     {
-        private Dictionary<TimeFrame, Action> subcsriptions = new();
+        private Dictionary<TimeFrames.TimeFrame, Action> subcsriptions = new();
 
         Tools()
         {
@@ -20,7 +17,7 @@ namespace TradeBot.Strategy
 
         public IEnumerable<Deal> GetDeals()
         {
-
+            return null;
         }
 
         private void EventHandler(Dot dot)
@@ -33,7 +30,7 @@ namespace TradeBot.Strategy
 
         }
 
-        public List<decimal> GetNearestLevels(TimeFrame d1, object both, Dot dot, int v, object value)
+        public List<decimal> GetNearestLevels(TimeFrames.TimeFrame d1, object both, Dot dot, int v, object value)
         {
             throw new NotImplementedException();
         }

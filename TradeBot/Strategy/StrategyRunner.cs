@@ -1,13 +1,13 @@
 ﻿using ExchangeConnectors;
 using System.Collections.Generic;
-using static ExchangeConnectors.TimeFrames;
+using DataTypes;
 
 namespace TradeBot.Strategy
 {
     internal class StrategyRunner
     {
         public IStrategy Strategy;
-        public TimeFrame[] TimeFrame;
+        public TimeFrames.TimeFrame[] TimeFrame;
         public IExchange Connector;
 
         private List<Deal> deals = new();
@@ -15,7 +15,7 @@ namespace TradeBot.Strategy
         public void Stop()
         {
             Strategy.Stop();
-            Connector.Stop();
+          //  Connector.Stop();
         }
 
         internal void Run()

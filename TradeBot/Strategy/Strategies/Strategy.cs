@@ -1,11 +1,10 @@
-﻿using ExchangeConnectors;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using static DataObjects;
-using static ExchangeConnectors.TimeFrames;
+using DataTypes;
+using ExchangeConnectors;
 
-namespace TradeBot.Strategy
+namespace TradeBot.Strategy.Strategies
 {
     internal class SimpleStrategy : IStrategy
     {
@@ -22,23 +21,23 @@ namespace TradeBot.Strategy
 
         public void EntryHandler(Dot dot)// на входе Event class, который содержит много разной инфы
         {
-            foreach(var deal in deals.Where(x=>x.Status!= Status.Close))
+            /*foreach(var deal in deals.Where(x=>x.Status!= Status.Close))
             {
                 var tk = deal.Takes;
                 var st = deal.Stops;
                 var ent = deal.Entryes;
-                if (deal.TimeFrame == TimeFrame.D1)
+                if (deal.TimeFrame == TimeFrames.TimeFrame.D1)
                 {
-                    var entry = Tools.GetNearestLevels(TimeFrame.D1, Direction.Both, dot, 2, LevelType.Value);
-                    var takes = Tools.GetNearestLevels(TimeFrame.h4, Direction.Up, dot, 5, LevelType.Struct);
-                    var stops = Tools.GetNearestLevels(TimeFrame.h1, Direction.Down, dot, 10, LevelType.Value);
+                    var entry = Tools.GetNearestLevels(TimeFrames.TimeFrame.D1, Direction.Both, dot, 2, LevelType.Value);
+                    var takes = Tools.GetNearestLevels(TimeFrames.TimeFrame.h4, Direction.Up, dot, 5, LevelType.Struct);
+                    var stops = Tools.GetNearestLevels(TimeFrames.TimeFrame.h1, Direction.Down, dot, 10, LevelType.Value);
 
                     if (CheckRiskProfitFactor(entry, takes, stops))
                     {
                         //SendOrder();
                     }
                 }
-            }
+            }*/
         }
 
         public void StopHandler(Dot dot)

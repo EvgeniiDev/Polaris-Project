@@ -1,4 +1,4 @@
-﻿public class DataObjects
+﻿namespace DataTypes
 {
     public enum OrderType
     {
@@ -6,6 +6,8 @@
         Sell,
         Long,
         Short,
+        BuyLimit,
+        SellLimit
     }
 
     public enum Status

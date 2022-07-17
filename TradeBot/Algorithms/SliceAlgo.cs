@@ -105,6 +105,9 @@ namespace TradeBot
 
             foreach (var candle in section)
             {
+                if (delta == 0)
+                    continue;
+
                 int startN = (int)((candle.Low - ATL.Price) / delta);
                 int endN = (int)((candle.High - ATL.Price) / delta);
 
@@ -137,6 +140,9 @@ namespace TradeBot
 
             foreach (var candle in section)
             {
+                if (delta == 0)
+                    continue;
+
                 int startN = (int)((candle.Low - ATL.Price) / delta);
                 int endN = (int)((candle.High - ATL.Price) / delta);
                 for (int step = startN; step <= endN; step++)

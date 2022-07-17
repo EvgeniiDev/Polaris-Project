@@ -3,21 +3,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using static DataObjects;
-using static ExchangeConnectors.TimeFrames;
+using DataTypes;
 
 namespace TradeBot.Strategy
 {
-    internal class Deal
+    public class Deal
     {
         private OrderType Type;
         private IExchange _exchange;
         private string _ticker;
         public Status Status;
-        public TimeFrame TimeFrame;
+        public TimeFrames.TimeFrame TimeFrame;
         public decimal Amount { get; private set; }
 
-        public List<Order> Entryes = new();
+        public List<Order> Entries = new();
         public List<Order> Stops = new();
         public List<Order> Takes = new();
         public Guid Id = Guid.NewGuid();
@@ -25,13 +24,13 @@ namespace TradeBot.Strategy
         private Dictionary<Guid, string> _tableOfCorrespondence = new();
 
 
-        public Deal(string ticker, OrderType type, List<Order> entryes, List<Order> stops, List<Order> takes, TimeFrame timeframe)
+        public Deal(string ticker, OrderType type, List<Order> entries, List<Order> stops, List<Order> takes, TimeFrames.TimeFrame timeframe)
         {
             throw new NotImplementedException();
             _ticker = ticker;
             Type = type;
 
-            Entryes = entryes;
+            Entries = entries;
             Stops = stops;
             Takes = takes;
             TimeFrame = timeframe;
@@ -41,7 +40,7 @@ namespace TradeBot.Strategy
 
         private void UpdateDeal()
         {
-            var isAllClosed = Entryes.Union(Stops).Union(Takes).All(x => x.Status == Status.Close);
+            var isAllClosed = Entries.Union(Stops).Union(Takes).All(x => x.Status == Status.Close);
 
             if(isAllClosed)
                 Status = Status.Close;
@@ -55,19 +54,19 @@ namespace TradeBot.Strategy
             // а вдруг я извне захочу узнать о заполненности сделки
             
             //Возможно Amount считается не верно. надо проверять
-            for (var num = 0; num < Entryes.Count; num++)
+            for (var num = 0; num < Entries.Count; num++)
             {
-                var order = Entryes[num];
+                var order = Entries[num];
 
                 if (order.Status == Status.Close)
                     continue;
 
                 var id = _tableOfCorrespondence[order.Id];
-                var newInfo = await _exchange.GetOrderInfo(id);
+                var newInfo = await _exchange.GetOrderInfo(_ticker, id);
 
 
-                Entryes[num].Status = newInfo.Status;
-                Entryes[num].FilledAmount = newInfo.FilledAmount;
+                Entries[num].Status = newInfo.Status;
+                Entries[num].FilledAmount = newInfo.FilledAmount;
                 Amount += newInfo.Amount;
             }
 
@@ -79,7 +78,7 @@ namespace TradeBot.Strategy
                     continue;
 
                 var id = _tableOfCorrespondence[order.Id];
-                var newInfo = await _exchange.GetOrderInfo(id);
+                var newInfo = await _exchange.GetOrderInfo(_ticker, id);
 
 
                 Stops[num].Status = newInfo.Status;
@@ -96,7 +95,7 @@ namespace TradeBot.Strategy
                     continue;
 
                 var id = _tableOfCorrespondence[order.Id];
-                var newInfo = await _exchange.GetOrderInfo(id);
+                var newInfo = await _exchange.GetOrderInfo(_ticker, id);
 
 
                 Takes[num].Status = newInfo.Status;

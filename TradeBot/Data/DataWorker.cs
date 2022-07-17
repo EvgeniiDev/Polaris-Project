@@ -1,114 +1,143 @@
-﻿using Binance.Net.Enums;
-using DataTypes;
-using ExchangeConnectors;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using TradeBot.Data;
-using static ExchangeConnectors.TimeFrames;
+using DataTypes;
+using ExchangeConnectors;
+using TradeBot.Algorithms;
+using static DataTypes.TimeFrames;
 
-namespace TradeBot
+namespace TradeBot.Data;
+
+public class DataWorker
 {
-    class DataWorker
+    public readonly string Pair;
+    public readonly TimeFrame TimeFrame;
+    private readonly IExchange _connector;
+    private DataDistributor _distributor;
+    public Type ExchangeType;
+
+    private DateTime _time;
+    public float Rps;
+    public bool IsStarted { get; private set; } = false;
+    private readonly Mode mode;
+
+    public DataWorker(IExchange connector, Type exchangeType, string pair, TimeFrame timeFrame, DateTime? startDate = null)
     {
-        public string Pair;
-        public TimeFrame TimeFrame = new();
+        Pair = pair;
+        TimeFrame = timeFrame;
 
-        private List<Candle> Candles = new();
-        private List<Accumulation> Accumulations = new();
-        private List<Dot> zigZag = new();
-
-        private DateTime Time = new DateTime(2018, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        private IExchange parser;
-        private bool IsStarted = false;
-        public void Run()
+        if (startDate != null)
         {
-            //Timer t = new Timer(1000);
-            //t.AutoReset = true;
-            //t.Elapsed += new ElapsedEventHandler(CheckNewData);
-            //t.Start();
-            IsStarted = true;
-            CheckNewData();
+            _time = startDate.Value;
+            mode = Mode.Requests;
+        }
+        else
+        {
+            _time = DateTime.UtcNow;
+            mode = Mode.Socket;
         }
 
-        private async Task CheckNewData()
+        _connector = connector;
+        ExchangeType = exchangeType;
+    }
+
+    internal void RegisterDistributor(DataDistributor distributor)
+    {
+        _distributor = distributor;
+    }
+
+    public void Start()
+    {
+        if (mode == Mode.Socket)
+            _connector.SubscibeOnNewKlines(Pair, TimeFrame, NewCandleEventHandler);
+        else if (mode == Mode.Requests)
+            Task.Run(() => CheckNewData(2));
+        IsStarted = true;
+    }
+
+    public void Stop()
+    {
+        if (mode == Mode.Socket)
+            _connector.UnsubscibeOnNewKlines(Pair, TimeFrame, NewCandleEventHandler);
+        IsStarted = false;
+    }
+
+    public void CheckNewData(int candlesAmount)
+    {
+        var stopWatch = new Stopwatch();
+        while (IsStarted)
         {
-            while (IsStarted)
+            stopWatch.Restart();
+            var lastCandleTime = new DateTime(_time.Ticks, DateTimeKind.Utc).AddSeconds((candlesAmount - 1) * TimeFrame.GetSeconds());
+            var lastCandles = _connector.GetCandles(Pair, TimeFrame, _time, lastCandleTime).Result;
+            foreach (var candle in lastCandles)
             {
-                var lastCandles = await parser.GetCandles(Pair, TimeFrame, Time, Time);
-
-                if (lastCandles.Count() != 0)
-                {
-                    if (Candles.Count > 0 && Candles.Last() != lastCandles.First())
-                        await DataProcessing();
-                    Candles.AddRange(lastCandles);
-                    var timeOfLastData = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                    timeOfLastData = timeOfLastData.AddMilliseconds(Candles.Last().TimeStamp);
-                    Time = timeOfLastData.AddSeconds((int)GetSeconds(TimeFrame));
-                    Console.WriteLine(Time);
-                    if (Candles.Count % 100 == 0)
-                        Export.WriteJson(Candles, Accumulations, zigZag, null, null, @"C:\Users\user\Desktop\tvjs-xp-main\src\apps", "data.json");
-                }
+                _time = _time.AddSeconds(TimeFrame.GetSeconds());
+                NewCandleEventHandler(new Kline(candle.TimeStamp, TimeFrame, candle.Open,
+                    candle.High, candle.Low, candle.Close));
             }
+            var sleep = (int)(1000 / Rps - stopWatch.ElapsedMilliseconds);
+            Thread.Sleep(sleep > 0 ? sleep : 0);
         }
+    }
 
-        private async Task DataProcessing()
-        {
-            //var timer = new Stopwatch();
-            // timer.Start();
-            var a = Task.Run(() => ZigZag.CalculatePriceStructLight(Candles, 1));
-            var b = Task.Run(() => SliceAlgorithm.FindBoxes(Candles));
-            a.Wait();
-            b.Wait();
-            ;
-            zigZag = a.Result;
-            ;
-            Accumulations = b.Result;
-            //timer.Stop();
-            //Console.WriteLine(timer.ElapsedMilliseconds);
-            //Send to trader
-            //JoinBoxes(accumulations);
-        }
+    private void NewCandleEventHandler(Kline candle)
+    {
+        //Console.WriteLine($"{candle.TimeStamp} {candle.TimeFrame}");
+        DataProcessing(candle);
+    }
 
-        public void Exit()
+    private void DataProcessing(Kline candle)
+    {
+        var ev = new NewCandleEvent
         {
-            //stop working cycle
-            //save data there to files
-            //save data to db
-            //
-            IsStarted = false;
-            Thread.Sleep(3000);
-            ExportData();
+            ExchangeType = ExchangeType,
+            Candle = candle,
+            Pair = Pair,
+            TimeFrame = candle.TimeFrame,
+            TimeStamp = candle.TimeStamp,
+        };
+        _distributor.DataReceivedEventHandler(ev);
 
-        }
+        // if (_candles.Count % 100 == 0)
+        //     Export.WriteJson(_candles, null, null, null, null, $".\\data\\{Pair}",
+        //         $"{TimeFrame}-candles.json");
+    }
 
-        private void ImportSavedData()
-        {
-            throw new NotImplementedException();
-        }
-        
-        public void ImportData()
-        {
-            var candles = Export.GetCandlesFromDB($".\\data\\{Pair}", $"{TimeFrame}-candles.json");
-            var accumulations = Export.GetAccumsFromDB($".\\data\\{Pair}", $"{TimeFrame}-accums.json");
-            var zigZag = Export.GetZigZagFromDB($".\\data\\{Pair}", $"{TimeFrame}-zigzag.json");
-        }
-        
-        private void ExportData()
-        {
-            //Export.WriteJson(Candles, Accumulations, zigZag, $".\\data\\{Pair}", $"{TimeFrame}-candles.json");
-            Export.SaveCandles(Candles, $".\\data\\{Pair}", $"{TimeFrame}-candles.json");
-            Export.SaveAccums(Accumulations, $".\\data\\{Pair}", $"{TimeFrame}-accums.json");
-            Export.SaveZigZag(zigZag, $".\\data\\{Pair}", $"{TimeFrame}-zigzag.json");
-            //save data to json
-            //save data to db
-        }
+    public void Exit()
+    {
+        //stop working cycle
+        //save data there to files
+        //save data to db
+        //
+        IsStarted = false;
+        Thread.Sleep(3000);
+        ExportData();
+    }
 
-        private static int GetSeconds(TimeFrame timeFrame)
-        {
-            return (int)timeFrame;
-        }
+
+    public void ImportData()
+    {
+        var candles = Export.GetCandlesFromDB($".\\data\\{Pair}", $"{TimeFrame}-candles.json");
+        var accumulations = Export.GetAccumsFromDB($".\\data\\{Pair}", $"{TimeFrame}-accums.json");
+        var zigZag = Export.GetZigZagFromDB($".\\data\\{Pair}", $"{TimeFrame}-zigzag.json");
+    }
+
+    private void ExportData()
+    {
+        //Export.WriteJson(Candles, Accumulations, zigZag, $".\\data\\{Pair}", $"{TimeFrame}-candles.json");
+        // Export.SaveCandles(_candles, $".\\data\\{Pair}", $"{TimeFrame}-candles.json");
+        //Export.SaveAccums(_accumulations, $".\\data\\{Pair}", $"{TimeFrame}-accums.json");
+        //Export.SaveZigZag(_zigZag, $".\\data\\{Pair}", $"{TimeFrame}-zigzag.json");
+        //save data to json
+        //save data to db
+    }
+
+
+    public enum Mode
+    {
+        Socket,
+        Requests,
     }
 }

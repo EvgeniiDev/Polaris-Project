@@ -1,7 +1,7 @@
 ﻿using ExchangeConnectors;
 using System;
 using System.Collections.Generic;
-using static ExchangeConnectors.TimeFrames;
+using DataTypes;
 
 namespace TradeBot.Strategy
 {
@@ -9,7 +9,7 @@ namespace TradeBot.Strategy
     {
         private static Dictionary<Guid, StrategyRunner> strategys = new ();
 
-        public static Guid AddStrategy(IStrategy strategy, TimeFrame[] timeFrame, IExchange connector)
+        public static Guid AddStrategy(IStrategy strategy, TimeFrames.TimeFrame[] timeFrame, IExchange connector)
         {
             var guid = Guid.NewGuid();
 
@@ -17,7 +17,7 @@ namespace TradeBot.Strategy
             {
                 Strategy = strategy,
                 TimeFrame = timeFrame,
-                Connector = new ExchangeWrapper(connector),
+               // Connector = new ExchangeWrapper(connector),
             });
 
             return guid;

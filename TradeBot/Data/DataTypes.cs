@@ -22,17 +22,17 @@ namespace TradeBot
 
     internal class Graph
     {
-        public List<DTOCandle> Candles;
+        public List<CandleDTO> Candles;
 
-        public Graph(List<DTOCandle> candles)
+        public Graph(List<CandleDTO> candles)
         {
             Candles = candles;
         }
     }
 
-    internal class DTOCandle
+    internal class CandleDTO
     {
-        internal DTOCandle(long timeStamp, decimal open, decimal high, decimal low, decimal close)
+        internal CandleDTO(long timeStamp, decimal open, decimal high, decimal low, decimal close)
         {
             TimeStamp = timeStamp;
             Open = open;
