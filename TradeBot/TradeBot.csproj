@@ -37,6 +37,7 @@
     <ProjectReference Include="..\DataContext\DataStorage.csproj" />
     <ProjectReference Include="..\DataTypes\DataTypes.csproj" />
     <ProjectReference Include="..\ExchangeConnectors\ExchangeConnectors.csproj" />
+    <ProjectReference Include="..\ExchangeFaker\ExchangeFaker.csproj" />
   </ItemGroup>
 
 </Project>

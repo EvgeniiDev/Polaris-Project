@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
+    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Polaris-Project\Core\Core.csproj" />
+    <ProjectReference Include="..\..\Polaris-Project\DataTypes\DataTypes.csproj" />
+    <ProjectReference Include="..\..\Polaris-Project\ExchangeConnectors\ExchangeConnectors.csproj" />
+    <ProjectReference Include="..\Log\Log.csproj" />
+  </ItemGroup>
+
+</Project>
