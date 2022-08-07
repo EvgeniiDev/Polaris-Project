@@ -11,10 +11,10 @@ namespace ExchangeConnectors
         public Task<Dictionary<string, decimal>> GetPrices();
 
         public Task<List<Candle>> GetCandles(string pair, TimeFrame timeFrame, DateTime start, DateTime end);
-        public void SubscibeOnNewKlines(string ticker, TimeFrame tf, Action<Kline> deleg);
-        public void UnsubscibeOnNewKlines(string ticker, TimeFrame tf, Action<Kline> deleg);
+        public void SubscribeOnNewKlines(string pair, TimeFrame tf, Action<Kline> deleg);
+        public void UnsubscribeOnNewKlines(string pair, TimeFrame tf, Action<Kline> deleg);
 
-        public Task<List<Order>> GetCurrentOrdersPerPair(string ticker);
+        public Task<List<Order>> GetCurrentOrdersPerPair(string pair);
         public Task<List<Trade>> GetTrades(string pair, TimeFrame timeFrame, DateTime startTime, DateTime endTime);
 
         public Task<string> CreateOrder(string pair, OrderType orderType, decimal price, decimal amount);

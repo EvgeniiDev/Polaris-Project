@@ -8,11 +8,12 @@
         public OrderType OrderType { get; set; }
         public Status Status { get; set; }
 
-        //public Order(decimal price, decimal amount)
-        //{
-        //    Price = price;
-        //    BaseAmount = amount;
-        //} нафига нужен такой конструктор?
+        public Order(decimal price, decimal amount)
+        {
+            Price = price;
+            Amount = amount;
+        }
+        //нафига нужен такой конструктор?
 
         public Order(decimal price, decimal amount, OrderType orderType, Status status = Status.Open)
         {

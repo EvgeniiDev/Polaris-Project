@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Binance.Net.Clients;
 using Binance.Net.Enums;
@@ -15,20 +14,21 @@ using CryptoExchange.Net.Sockets;
 using DataTypes;
 using Log;
 using MethodTimer;
-using static ExchangeConnectors.Connectors.Retry;
+using Polly;
 using static DataTypes.TimeFrames;
 using Kline = DataTypes.Kline;
 using Order = DataTypes.Order;
 using Trade = DataTypes.Trade;
-using System.Diagnostics;
 
 namespace ExchangeConnectors.Connectors;
 
 public class BinanceConnector : IExchange
 {
+    //todo добавить поддержку прокси
     private readonly BinanceClient _restClient;
     private readonly BinanceSocketClient _socketClient;
     private ConcurrentDictionary<(string, TimeFrame), List<Action<Kline>>> events = new();
+    private readonly ResponseQueue responseQueue = new();
     /*
     BinanceConnector
     Получение любого количества свечей из истории
@@ -60,19 +60,23 @@ public class BinanceConnector : IExchange
     public async Task<List<Candle>> GetCandles(string pair, TimeFrame timeFrame, DateTime start, DateTime end)
     {
         var candles = new List<Candle>();
-        while ((candles.Count > 0 ? candles.Last().TimeStamp : 0) < end.ToMilliseconds())
+        var maxTime = start;
+        while ((end - maxTime).TotalSeconds > 1)
         {
-            var time = candles.Count > 0 ? candles.Last().TimeStamp : start.ToMilliseconds();
-            start = time.ToDateTime();
-
             var convertedTimeFrame = timeFrame.GetKlineInterval();
-            var callResult = await WithRetries(_restClient.SpotApi.ExchangeData.GetKlinesAsync(pair, convertedTimeFrame, start, end));
-
+            var callResult = await responseQueue.Send(() => _restClient.SpotApi.ExchangeData.GetKlinesAsync(pair, convertedTimeFrame, maxTime, end, 1000)
+                                                                                            .WithRetries());
+            if (callResult.Data.Count() == 0)
+            {
+                Logger.GetCounter("ZeroCandlesFromExchange").WithLabels(new[] { "method" }).Inc(1);
+                break;
+            }
             foreach (var candle in callResult.Data)
             {
+                maxTime = maxTime < candle.CloseTime ? candle.CloseTime : maxTime;
                 var timeOfCandle = candle.OpenTime.ToMilliseconds();
                 var newCandle = new Candle(timeOfCandle, candle.OpenPrice, candle.HighPrice,
-                    candle.LowPrice, candle.ClosePrice);
+                                            candle.LowPrice, candle.ClosePrice);
                 candles.Add(newCandle);
             }
         }
@@ -80,7 +84,7 @@ public class BinanceConnector : IExchange
     }
 
     [Time]
-    public async void SubscibeOnNewKlines(string ticker, TimeFrame tf, Action<Kline> deleg)
+    public async void SubscribeOnNewKlines(string ticker, TimeFrame tf, Action<Kline> deleg)
     {
         var timeFrame = tf.GetKlineInterval();
         var subscriptionResult =
@@ -96,17 +100,17 @@ public class BinanceConnector : IExchange
 
         subscriptionResult.Data.ConnectionLost += () => { Console.WriteLine("Connection lost"); };
         subscriptionResult.Data.ConnectionRestored += (time) => { Console.WriteLine("Connection restored"); };
+
     }
 
     [Time]
-    public void UnsubscibeOnNewKlines(string ticker, TimeFrame tf, Action<Kline> deleg)
+    public void UnsubscribeOnNewKlines(string ticker, TimeFrame tf, Action<Kline> deleg)
     {
         RemoveSubscription(events, ticker, tf, deleg);
     }
 
     [Time]
-    private void AddSubscription(
-        ConcurrentDictionary<(string, TimeFrame), List<Action<Kline>>> dict, string ticker,
+    private void AddSubscription(ConcurrentDictionary<(string, TimeFrame), List<Action<Kline>>> dict, string ticker,
         TimeFrame tf, Action<Kline> deleg)
     {
         var dictByTicker = dict.GetOrAdd((ticker, tf), new List<Action<Kline>>());
@@ -114,12 +118,11 @@ public class BinanceConnector : IExchange
     }
 
     [Time]
-    private void RemoveSubscription(
-    ConcurrentDictionary<(string, TimeFrame), List<Action<Kline>>> dict, string ticker,
+    private void RemoveSubscription(ConcurrentDictionary<(string, TimeFrame), List<Action<Kline>>> dict, string ticker,
     TimeFrame tf, Action<Kline> deleg)
     {
         List<Action<Kline>> listDeleg;
-        if(dict.TryGetValue((ticker, tf), out listDeleg))
+        if (dict.TryGetValue((ticker, tf), out listDeleg))
             listDeleg.Remove(deleg);
     }
 
@@ -149,18 +152,18 @@ public class BinanceConnector : IExchange
     [Time]
     public async Task<List<Order>> GetCurrentOrdersPerPair(string ticker)
     {
-        var userTradesResult = await WithRetries(_restClient.SpotApi.Trading.GetOrdersAsync(ticker));
+        var userTradesResult = await responseQueue.Send(() => _restClient.SpotApi.Trading.GetOrdersAsync(ticker).WithRetries());
         var trades = new List<Order>();
-        
+
         foreach (var trade in userTradesResult.Data)
         {
             OrderType orderType;
             if (trade.Type is SpotOrderType.Limit or SpotOrderType.StopLossLimit)
-                orderType = ((CommonOrderSide) trade.Side).GetOrderType();
+                orderType = ((CommonOrderSide)trade.Side).GetOrderType();
             else
                 throw new Exception("я не знаю ,Что делать с таким типом ордеров");
 
-            var status = ((CommonOrderStatus) trade.Status).GetOrderStatus();
+            var status = ((CommonOrderStatus)trade.Status).GetOrderStatus();
 
             var order = new Order(trade.Price, trade.Quantity, trade.QuantityFilled, orderType, status);
             trades.Add(order);
@@ -171,7 +174,7 @@ public class BinanceConnector : IExchange
     [Time]
     public async Task<Dictionary<string, decimal>> GetPrices()
     {
-        var tickersResult = await WithRetries(_restClient.SpotApi.ExchangeData.GetTickersAsync());
+        var tickersResult = await responseQueue.Send(() => _restClient.SpotApi.ExchangeData.GetTickersAsync().WithRetries());
         return tickersResult.Data.ToDictionary(x => x.Symbol, x => x.LastPrice);
     }
 
@@ -181,8 +184,8 @@ public class BinanceConnector : IExchange
         var trades = new List<Trade>();
         while (startTime < endTime)
         {
-            var callResult = await WithRetries(_restClient.SpotApi.ExchangeData
-                .GetAggregatedTradeHistoryAsync(pair, null, startTime, startTime + TimeSpan.FromHours(1), 1000));
+            var callResult = await responseQueue.Send(() => _restClient.SpotApi.ExchangeData
+                .GetAggregatedTradeHistoryAsync(pair, null, startTime, startTime + TimeSpan.FromHours(1), 1000).WithRetries());
 
             foreach (var trade in callResult.Data)
             {
@@ -226,12 +229,12 @@ public class BinanceConnector : IExchange
         var orderSide = orderType.GetCommonOrderSide();
 
         // Placing a buy limit order for 0.001 BTC at a price of 50000USDT each
-        var orderData = await WithRetries(_restClient.SpotApi.CommonSpotClient.PlaceOrderAsync(
+        var orderData = await responseQueue.Send(() => _restClient.SpotApi.CommonSpotClient.PlaceOrderAsync(
             pair,
             orderSide,
             type,
             amount,
-            price));
+            price).WithRetries());
 
         return orderData.Data.Id;
         //return ((CryptoExchange.Net.Objects.WebCallResult<Binance.Net.Objects.Models.Spot.BinancePlacedOrder>)orderData.Data.SourceObject).Data.ClientOrderId;
@@ -241,7 +244,7 @@ public class BinanceConnector : IExchange
     [Time]
     public async Task<Order> GetOrderInfo(string pair, string id)
     {
-        var orderData = await WithRetries(_restClient.SpotApi.CommonSpotClient.GetOrderAsync(pair, id));
+        var orderData = await responseQueue.Send(() => _restClient.SpotApi.CommonSpotClient.GetOrderAsync(pair, id).WithRetries());
 
         var orderType = orderData.Data.Side.GetOrderType();
         var orderStatus = orderData.Data.Status.GetOrderStatus();
@@ -253,31 +256,27 @@ public class BinanceConnector : IExchange
     [Time]
     public async Task CancelOrder(string pair, string orderId)
     {
-        var orderData = await WithRetries(_restClient.SpotApi.CommonSpotClient.CancelOrderAsync(orderId, pair));
+        var orderData = await responseQueue.Send(() => _restClient.SpotApi.CommonSpotClient.CancelOrderAsync(orderId, pair).WithRetries());
     }
 }
 
 public static class Retry
 {
-    public static async Task<WebCallResult<T>> WithRetries<T>(Task<WebCallResult<T>> task)
+    [Time]
+    public static async Task<WebCallResult<T>> WithRetries<T>(this Task<WebCallResult<T>> task, int count = 3)
     {
-        var count = 3;
-        var maxAttempt = count;
-        WebCallResult<T> callResult;
-        string path = string.Empty;
-        do
-        {
-            if(count != maxAttempt)
-                Logger.SendTimerData($"RetryAttempt_{path}", 3 - count);
-            count--;
+        var retry = Policy
+          .HandleResult<WebCallResult<T>>(x => !x.Success)
+          .OrInner<TimeoutException>()
+          .WaitAndRetryForeverAsync(
+            retryAttempt => TimeSpan.FromMilliseconds(100 * retryAttempt),
+            (exception, timespan) =>
+            {
+                Logger.SendTimerData("RetryAttemptNumber", timespan.TotalMilliseconds / 100);
+                Console.WriteLine($"RetryAttempt {timespan.TotalMilliseconds / 100}");
+            });
 
-            callResult = await task;
-            path = new Uri(callResult.RequestUrl).AbsolutePath.Replace("/", "_");
-        } while (!callResult.Success && count >= 0);
-        if (callResult.Success)
-            return callResult;
-        Logger.GetCounter($"RequestFailed_{path}").Inc(1);
-        throw new Exception($"я пытался но не смог {callResult.Error}");
+        return await retry.ExecuteAsync(async () => await task);
     }
 }
 
@@ -322,6 +321,8 @@ public static class TimeFrameExtensions
         return timeFrame switch
         {
             KlineInterval.OneMinute => TimeFrame.m1,
+
+
             KlineInterval.ThreeMinutes => TimeFrame.m3,
             KlineInterval.FiveMinutes => TimeFrame.m5,
             KlineInterval.FifteenMinutes => TimeFrame.m15,
@@ -354,13 +355,5 @@ public static class TimeFrameExtensions
             TimeFrame.M1 => KlineInterval.OneMonth,
             _ => throw new Exception("Unknown timeframe!"),
         };
-    }
-}
-
-public static class MethodTimeLogger
-{
-    public static void Log(MethodBase methodBase, long milliseconds, string message)
-    {
-        Task.Run(() => Logger.SendTimerData(methodBase.Name, milliseconds, message));
     }
 }

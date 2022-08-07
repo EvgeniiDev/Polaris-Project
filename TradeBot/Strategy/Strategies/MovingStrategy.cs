@@ -1,35 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core;
+using Core.Algorithms.MA;
+using Core.Events;
+using Core.Events.Objects;
 using DataTypes;
 using ExchangeConnectors;
-using ExchangeConnectors.Connectors;
-using ExchangeFaker;
-using TradeBot.Algorithms.MA;
-using TradeBot.Events;
-using TradeBot.Events.Objects;
 
 namespace TradeBot.Strategy.Strategies
 {
-    internal class SimpleStrategy : IStrategy
+    //todo если свечи будут приходить очень быстро, то стратегия не будет успевать отрабатывать
+    public class SimpleStrategy : IStrategy
     {
         private List<decimal> _maHigh = new();
         private List<decimal> _maLow = new();
         private NewCandleEvent lastCandle;
         private NewCandleEvent prevlastCandle;
-        static string key = "70boOKYkASoJPBAjbjkMWU6UdMCy9T3NserZaaIkSiBpSFFRnL8bzJsxBaLZMWey";
-        static string secret = "MrA8gCZzQUZaW7mdvGhnErlgoYw8OTr7Ge0l4Z8OlYX5oGcrbOgaLodCT9nQ1iR7";
-        private Exchange exch = new(new BinanceConnector(key, secret));
         private IExchange connector;
 
-        private string buyOrderId;
-        private string sellOrderId;
+        private List<string> buyOrderId = new();
+        private List<string> sellOrderId = new();
+        private object _locker = new();
 
 
         public SimpleStrategy()
         {
-            //todo просто в мой ексчендж фейкер надо кинуть делегат, который будет подписан на получение свечи и все
-            connector = exch.CreateConnector("USD", 10020m);
             Init();
         }
 
@@ -61,21 +57,34 @@ namespace TradeBot.Strategy.Strategies
             if (_maHigh.Count > 0 && lastCandle != null && _maHigh.Last() >= lastCandle.Candle.Low &&
                 _maHigh.Last() <= lastCandle.Candle.High)
             {
-                var res = connector.CreateOrder(pair, OrderType.BuyLimit, lastCandle.Candle.High,
-                    10 / lastCandle.Candle.High);
-                buyOrderId = res.Result;
-                if (sellOrderId != null)
-                    connector.CancelOrder(pair, sellOrderId);
+                lock (_locker)
+                {
+                    foreach (var so in sellOrderId.ToList())
+                    {
+                        connector.CancelOrder(pair, so);
+                        sellOrderId.Remove(so);
+                    }
+                    var res = connector.CreateOrder(pair, OrderType.Long, lastCandle.Candle.High,
+                        100 / lastCandle.Candle.High);
+                    buyOrderId.Add(res.Result);
+                }
             }
 
 
             if (_maLow.Count > 0 && lastCandle != null && _maLow.Last() >= lastCandle.Candle.Low &&
                 _maLow.Last() <= lastCandle.Candle.High)
             {
-                if (buyOrderId != null)
-                    connector.CancelOrder(pair, buyOrderId);
-                var res = connector.CreateOrder(pair, OrderType.SellLimit, lastCandle.Candle.High,
-                    10 / lastCandle.Candle.High);
+                lock (_locker)
+                {
+                    foreach (var so in buyOrderId.ToList())
+                    {
+                        connector.CancelOrder(pair, so);
+                        buyOrderId.Remove(so);
+                    }
+                    var res = connector.CreateOrder(pair, OrderType.Short, lastCandle.Candle.High,
+                        100 / lastCandle.Candle.High);
+                    sellOrderId.Add(res.Result);
+                }
             }
         }
 
@@ -174,7 +183,7 @@ namespace TradeBot.Strategy.Strategies
 
         public void Start(IExchange connector)
         {
-            throw new NotImplementedException();
+            this.connector = connector;
         }
     }
 }

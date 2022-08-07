@@ -2,8 +2,8 @@
 {
     public enum OrderType
     {
-        Buy,
-        Sell,
+     //   Buy,
+      //  Sell,
         Long,
         Short,
         BuyLimit,

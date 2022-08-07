@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Core;
+using Core.Events;
 using DataTypes;
 
 namespace TradeBot.Strategy
@@ -11,7 +13,7 @@ namespace TradeBot.Strategy
         Tools()
         {
             EventsCatalog.PP += (Dot dot) => EventHandler(dot);
-            EventsCatalog.ReboundFromTheLevel += (Dot dot) => EventHandler(dot);
+          //  EventsCatalog.ReboundFromTheLevel += (Dot dot) => EventHandler(dot);
             EventsCatalog.Slom += (Dot dot) => EventHandler(dot);
         }
 

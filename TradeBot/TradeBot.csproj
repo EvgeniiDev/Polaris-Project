@@ -24,11 +24,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.7" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.5" />
     <PackageReference Include="SuperSocket.WebSocket.Server" Version="2.0.0-beta.10" />
     <PackageReference Include="System.Collections" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\TrueRealExchange\TrueRealExchange\ExchangeFaker.csproj" />
+    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\DataContext\DataStorage.csproj" />
     <ProjectReference Include="..\DataTypes\DataTypes.csproj" />
     <ProjectReference Include="..\ExchangeConnectors\ExchangeConnectors.csproj" />
   </ItemGroup>
