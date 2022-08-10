@@ -17,12 +17,17 @@ namespace TradeBot.Strategy
             //todo добавить обертку над IExchange, которая кеширует все свечи
             var id = Guid.NewGuid();
             var fakeExchange = exchangeFakers.GetOrAdd(connector, new ExchangeFaker.ExchangeFaker(connector));
+            var acc = fakeExchange.CreateAccount(id.ToString(), "USD", 10000m);
 
-            Strategys.TryAdd(id, new StrategyRunner()
+            var strategyRunner = new StrategyRunner()
             {
                 Strategy = strategy,
-                Connector = fakeExchange.CreateConnector(id, "USD", 10000m),
-            });
+                Connector = fakeExchange.CreateConnector(acc),
+                account = acc,
+            };
+
+            Strategys.TryAdd(id, strategyRunner);
+            strategy.StrategyRunner = strategyRunner;
 
             connectors.TryAdd(id, connector);
             return id;

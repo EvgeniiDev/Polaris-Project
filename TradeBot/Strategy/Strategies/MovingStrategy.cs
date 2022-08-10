@@ -22,8 +22,7 @@ namespace TradeBot.Strategy.Strategies
         private List<string> buyOrderId = new();
         private List<string> sellOrderId = new();
         private object _locker = new();
-
-
+        public StrategyRunner StrategyRunner { get; set; }
         public SimpleStrategy()
         {
             Init();
@@ -86,6 +85,7 @@ namespace TradeBot.Strategy.Strategies
                     sellOrderId.Add(res.Result);
                 }
             }
+            StrategyRunner.IterationCompleted(pair);
         }
 
         private bool IsHighCrossLow()
@@ -150,7 +150,6 @@ namespace TradeBot.Strategy.Strategies
             //в текущем ордере т.е должен быть список локальных ордеров.
             //и только после этого принимать решение об сдвигании.
         }
-
 
         public void TakeHandler()
         {

@@ -1,6 +1,6 @@
 ﻿using ExchangeConnectors;
-using System.Collections.Generic;
 using DataTypes;
+using ExchangeFaker;
 
 namespace TradeBot.Strategy
 {
@@ -9,8 +9,7 @@ namespace TradeBot.Strategy
         public IStrategy Strategy;
         public TimeFrames.TimeFrame[] TimeFrame;
         public IExchange Connector;
-
-        private List<Deal> deals = new();
+        public Account account;
 
         public void Stop()
         {
@@ -21,6 +20,11 @@ namespace TradeBot.Strategy
         internal void Run()
         {
             Strategy.Start(Connector);
+        }
+
+        public void IterationCompleted(string pair)
+        {
+            account.NextPrice(pair);
         }
     }
 }

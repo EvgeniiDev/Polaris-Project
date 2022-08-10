@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Core.Events;
 using Core.Events.Objects;
@@ -14,7 +15,6 @@ namespace ExchangeFaker
     {
         public List<Account> accounts { get; private set; } = new();
         private readonly IExchange exchange;
-
         public ExchangeFaker(IExchange exchange)
         {
             this.exchange = exchange;
@@ -39,15 +39,11 @@ namespace ExchangeFaker
             foreach (var acc in accounts.ToArray())
             {
                 Console.WriteLine(obj.Candle.High);
-                acc.DataReceiver(new Dictionary<string, decimal>
-                    {{obj.Pair, obj.Candle.Low}});
-
-                acc.DataReceiver(new Dictionary<string, decimal>
-                    {{obj.Pair, obj.Candle.High}});
+                acc.DataReceiver(obj);
             }
         }
 
-        private Account CreateAccount(string name, string defaultCurrency, decimal startBalance)
+        public Account CreateAccount(string name, string defaultCurrency, decimal startBalance)
         {
             var account = new Account(name, defaultCurrency, startBalance);
             lock (accounts)
@@ -60,6 +56,11 @@ namespace ExchangeFaker
         public Connector CreateConnector(Guid id, string defaultCurrency, decimal startBalance)
         {
             var acc = CreateAccount(id.ToString(), defaultCurrency, startBalance);
+            return new Connector(exchange, acc);
+        }
+
+        public Connector CreateConnector(Account acc)
+        {
             return new Connector(exchange, acc);
         }
     }

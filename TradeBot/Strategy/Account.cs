@@ -2,10 +2,10 @@
 
 namespace TradeBot.Strategy
 {
-    internal class Account
-    {
-        public List<Deal> OpenDeals;
+    //internal class Account
+    //{
+    //    public List<Deal> OpenDeals;
 
-        public List<Deal> ClosedDeals;
-    }
+    //    public List<Deal> ClosedDeals;
+    //}
 }
