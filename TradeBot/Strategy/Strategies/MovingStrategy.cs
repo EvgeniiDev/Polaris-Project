@@ -1,37 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Core;
 using Core.Algorithms.MA;
 using Core.Events;
 using Core.Events.Objects;
 using DataTypes;
-using ExchangeConnectors;
 
 namespace TradeBot.Strategy.Strategies
 {
-    //todo если свечи будут приходить очень быстро, то стратегия не будет успевать отрабатывать
-    public class SimpleStrategy : IStrategy
+    public class SimpleStrategy : Strategy
     {
         private List<decimal> _maHigh = new();
         private List<decimal> _maLow = new();
         private NewCandleEvent lastCandle;
         private NewCandleEvent prevlastCandle;
-        private IExchange connector;
 
         private List<string> buyOrderId = new();
         private List<string> sellOrderId = new();
         private object _locker = new();
-        public StrategyRunner StrategyRunner { get; set; }
-        public SimpleStrategy()
-        {
-            Init();
-        }
 
-        private void Init()
+        public override void Init()
         {
-            var ma = new MovingAverage(180, MovingAverage.Type.High, "BTCUSDT", TimeFrames.TimeFrame.h1);
-            var maa = new MovingAverage(180, MovingAverage.Type.Low, "BTCUSDT", TimeFrames.TimeFrame.h1);
+            foreach (var pair in Pairs)
+            {
+                foreach (var timeFrame in TimeFrames)
+                {
+                    var ma = new MovingAverage(180, MovingAverage.Type.High, pair, timeFrame);
+                    var maa = new MovingAverage(180, MovingAverage.Type.Low, pair, timeFrame);
+                }
+            }
             EventsCatalog.NewCandle += EntryHandler;
             EventsCatalog.MovingAverage += MAEntryHandler;
             //выполняет подписку на необходимые события для работы стратегии
@@ -45,7 +44,7 @@ namespace TradeBot.Strategy.Strategies
             var val = obj.value;
             var pair = obj.Pair;
 
-            if (obj.Pair != "BTCUSDT" || obj.TimeFrame != TimeFrames.TimeFrame.h1)
+            if (!Pairs.Contains(obj.Pair) || !TimeFrames.Contains(obj.TimeFrame))
                 return;
 
             if (type == MovingAverage.Type.High)
@@ -60,15 +59,17 @@ namespace TradeBot.Strategy.Strategies
                 {
                     foreach (var so in sellOrderId.ToList())
                     {
-                        connector.CancelOrder(pair, so);
+                        CancelOrder(pair, so);
                         sellOrderId.Remove(so);
                     }
-                    var res = connector.CreateOrder(pair, OrderType.Long, lastCandle.Candle.High,
+                    if (buyOrderId.Count < 3)
+                    {
+                        var res = CreateOrder(pair, OrderType.Long, lastCandle.Candle.High,
                         100 / lastCandle.Candle.High);
-                    buyOrderId.Add(res.Result);
+                        buyOrderId.Add(res.Result);
+                    }
                 }
             }
-
 
             if (_maLow.Count > 0 && lastCandle != null && _maLow.Last() >= lastCandle.Candle.Low &&
                 _maLow.Last() <= lastCandle.Candle.High)
@@ -77,15 +78,18 @@ namespace TradeBot.Strategy.Strategies
                 {
                     foreach (var so in buyOrderId.ToList())
                     {
-                        connector.CancelOrder(pair, so);
+                        CancelOrder(pair, so);
                         buyOrderId.Remove(so);
                     }
-                    var res = connector.CreateOrder(pair, OrderType.Short, lastCandle.Candle.High,
-                        100 / lastCandle.Candle.High);
-                    sellOrderId.Add(res.Result);
+                    if (sellOrderId.Count < 3)
+                    {
+                        var res = CreateOrder(pair, OrderType.Short, lastCandle.Candle.High,
+                            100 / lastCandle.Candle.High);
+                        sellOrderId.Add(res.Result);
+                    }
                 }
             }
-            StrategyRunner.IterationCompleted(pair);
+            IterationCompleted(pair);
         }
 
         private bool IsHighCrossLow()
@@ -175,14 +179,5 @@ namespace TradeBot.Strategy.Strategies
             return CheckRiskProfitFactor(entryAvg, takeAvg, stopAvg);
         }
 
-        public void Stop()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Start(IExchange connector)
-        {
-            this.connector = connector;
-        }
     }
 }

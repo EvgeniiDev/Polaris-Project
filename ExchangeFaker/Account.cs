@@ -52,22 +52,10 @@ namespace ExchangeFaker
             BaseDeal order = orderType == OrderType.Long ?
                                 new FuturesDealLong(this, pair, prices, leverage, takes, stops)
                               : new FuturesDealShort(this, pair, prices, leverage, takes, stops);
-            var guid = Guid.NewGuid();
 
+            var guid = Guid.NewGuid();
             Orders.TryAdd(guid, order);
 
-            if (orderType == OrderType.Long)
-            {
-                counter += prices.Sum(x => x.Amount);
-                lon++;
-            }
-            else if (orderType == OrderType.Short)
-            {
-                counter -= prices.Sum(x => x.Amount);
-                shor++;
-            }
-
-            Console.WriteLine($"{counter} {lon} {shor}");
             return guid;
         }
 

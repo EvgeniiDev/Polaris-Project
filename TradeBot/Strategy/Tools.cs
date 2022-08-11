@@ -27,7 +27,7 @@ namespace TradeBot.Strategy
             throw new NotImplementedException();
         }
 
-        public void PlaceOrder(IStrategy strategy)
+        public void PlaceOrder(Strategy strategy)
         {
 
         }

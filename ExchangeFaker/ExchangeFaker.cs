@@ -38,7 +38,6 @@ namespace ExchangeFaker
             //todo исправить этот дибильный вариант получения данных, или понять что он нормальный и хорошо работает
             foreach (var acc in accounts.ToArray())
             {
-                Console.WriteLine(obj.Candle.High);
                 acc.DataReceiver(obj);
             }
         }

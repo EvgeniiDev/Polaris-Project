@@ -8,28 +8,23 @@ namespace TradeBot.Strategy
 {
     public static class StrategysManager
     {
-        public static ConcurrentDictionary<Guid, StrategyRunner> Strategys { get; private set; } = new();
+        public static ConcurrentDictionary<Guid, Strategy> Strategys { get; private set; } = new();
         private static ConcurrentDictionary<IExchange, ExchangeFaker.ExchangeFaker> exchangeFakers = new();
         private static ConcurrentDictionary<Guid, IExchange> connectors = new();
 
-        public static Guid AddStrategy(IStrategy strategy, IExchange connector)
+        public static Guid AddStrategy(Strategy strategy, IExchange connector)
         {
             //todo добавить обертку над IExchange, которая кеширует все свечи
             var id = Guid.NewGuid();
             var fakeExchange = exchangeFakers.GetOrAdd(connector, new ExchangeFaker.ExchangeFaker(connector));
             var acc = fakeExchange.CreateAccount(id.ToString(), "USD", 10000m);
 
-            var strategyRunner = new StrategyRunner()
-            {
-                Strategy = strategy,
-                Connector = fakeExchange.CreateConnector(acc),
-                account = acc,
-            };
+            strategy.Account = acc;
+            strategy.Connector = fakeExchange.CreateConnector(acc);
 
-            Strategys.TryAdd(id, strategyRunner);
-            strategy.StrategyRunner = strategyRunner;
-
+            Strategys.TryAdd(id, strategy);
             connectors.TryAdd(id, connector);
+
             return id;
         }
 
@@ -45,7 +40,7 @@ namespace TradeBot.Strategy
                     DataConcentrator.RunDataSource(typeof(ExchangeFaker.ExchangeFaker), pair, timeFrame);
                 }
             //DataConcentrator.StartConcentrator();
-            Strategys[guid].Run();
+            Strategys[guid].Start(pairs, timeFrames);
         }
 
         //todo добавить метод на остановку стратегий
