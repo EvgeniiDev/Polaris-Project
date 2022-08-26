@@ -63,8 +63,9 @@ public class DataWorker
         {
             var lastCandleTime =
                 new DateTime(_time.Ticks, DateTimeKind.Utc).AddSeconds(candlesAmount * TimeFrame.GetSeconds()-1);
-            var lastCandles = _connector.GetCandles(Pair, TimeFrame, _time, lastCandleTime).Result;
 
+            var lastCandles = _connector.GetCandles(Pair, TimeFrame, _time, lastCandleTime).Result;
+            
             if (lastCandles.Count == 0)
                 _time = lastCandleTime;
 

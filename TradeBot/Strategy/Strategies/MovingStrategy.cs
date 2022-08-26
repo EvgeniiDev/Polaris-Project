@@ -10,7 +10,7 @@ using ExchangeConnectors;
 
 namespace TradeBot.Strategy.Strategies
 {
-    //todo если свечи будут приходить очень быстро, то стратегия не будет успевать отрабатывать
+    //todo если свечи будут приходить очень быстро, то стратегия не будет успевать отрабатывать'
     public class SimpleStrategy : IStrategy
     {
         private List<decimal> _maHigh = new();
