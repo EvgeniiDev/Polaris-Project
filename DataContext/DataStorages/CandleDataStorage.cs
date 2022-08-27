@@ -11,7 +11,7 @@ namespace DataStorage.DataStorages;
 public class CandleDataStorage : IDataStorage<CandleDBO>
 {
     private ApplicationContext db;
-    internal ConcurrentDictionary<(string, string, TimeFrame), QueueCache<CandleDBO>> _cache = new();
+    private ConcurrentDictionary<(string, string, TimeFrame), QueueCache<CandleDBO>> _cache = new();
     private Func<QueueCache<CandleDBO>> createQueueCache = () => new QueueCache<CandleDBO>(1000);
 
     public CandleDataStorage() : base()

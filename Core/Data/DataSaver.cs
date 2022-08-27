@@ -8,14 +8,14 @@ namespace Core.Data;
 
 public class DataSaver
 {
-    public static CandleDataStorage _candleDataStorage = new();
+    private static CandleDataStorage _candleDataStorage = new();
     private static ZigZagDataStorage _zigZagDataStorage = new();
     private static MovingAverageDataStorage _movingAverageDataStorage = new();
 
     public DataSaver()
     {
         EventsCatalog.NewCandle += SaveCandle;
-        //EventsCatalog.NewZigZag += SaveZigZag;
+        EventsCatalog.NewZigZag += SaveZigZag;
         //EventsCatalog.MovingAverage += SaveMovingAverage;
     }
 

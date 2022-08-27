@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace DataStorage.DataStorages;
 
-public class Cash : IExchange
+public class Cashe : IExchange
 {
     private readonly IExchange _connector;
     private readonly CandleDataStorage _candleDataStorage;
-    public Cash(IExchange connector, CandleDataStorage candleDataStorage)
+    public Cashe(IExchange connector, CandleDataStorage candleDataStorage)
     {
         _connector = connector;
         _candleDataStorage = candleDataStorage;
@@ -24,26 +24,22 @@ public class Cash : IExchange
     }
 
     public async Task<List<Candle>> GetCandles(string pair, TimeFrames.TimeFrame timeFrame, DateTime start, DateTime end)
-    {
+    { 
+        var name = _connector.GetType().Name;
         var convertedStart = DateTimeExtension.ToMilliseconds(start);
         var convertedEnd = DateTimeExtension.ToMilliseconds(end);
-        var keys = _candleDataStorage._cache.Keys
-            .Where(key => key.Item2 == pair && key.Item3 == timeFrame);
-        var finalListCandles = new List<Candle>();
-        foreach (var key in keys)
-        {
-            var listCandles = _candleDataStorage.GetRange(key, convertedStart, convertedEnd)
-                .Select(candleDBO => new Candle(
-                    timeStamp, candleDBO.Open, candleDBO.High, candleDBO.Low, candleDBO.Close)
-                );
-
-            finalListCandles.AddRange(listCandles);
-        }
-
-
-        if (finalListCandles.Count > 0)
-            return finalListCandles;
-
+        var key = (name, pair, timeFrame);
+        var candles = _candleDataStorage.GetRange(key, convertedStart, convertedEnd)
+            .Select(candleDBO => new Candle(
+                candleDBO.TimeStamp,
+                candleDBO.Open,
+                candleDBO.High,
+                candleDBO.Low,
+                candleDBO.Close))
+            .ToList();
+        if (candles.Count() > 0)
+            return candles;
+            
         return await _connector.GetCandles(pair, timeFrame, start, end);
     }
 
