@@ -26,8 +26,8 @@ public class Cashe : IExchange
     public async Task<List<Candle>> GetCandles(string pair, TimeFrames.TimeFrame timeFrame, DateTime start, DateTime end)
     { 
         var name = _connector.GetType().Name;
-        var convertedStart = DateTimeExtension.ToMilliseconds(start);
-        var convertedEnd = DateTimeExtension.ToMilliseconds(end);
+        var convertedStart = start.ToMilliseconds();
+        var convertedEnd = end.ToMilliseconds();
         var key = (name, pair, timeFrame);
         var candles = _candleDataStorage.GetRange(key, convertedStart, convertedEnd)
             .Select(candleDBO => new Candle(
