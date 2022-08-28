@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace DataStorage.DataStorages;
 
-public class Cashe : IExchange
+public class Cache : IExchange
 {
     private readonly IExchange _connector;
     private readonly CandleDataStorage _candleDataStorage;
-    public Cashe(IExchange connector, CandleDataStorage candleDataStorage)
+    public Cache(IExchange connector, CandleDataStorage candleDataStorage)
     {
         _connector = connector;
         _candleDataStorage = candleDataStorage;
