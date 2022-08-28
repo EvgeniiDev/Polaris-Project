@@ -13,8 +13,8 @@ static class Program
 {
     public static void Main()
     {
-        var key = "d1kZLyychsfHPhcFTv2ylHrIkuwTEIv6iqR3ID0Pz26VtTYl1xN4ltGTr6T5p7Rh";
-        var secret = "nGPQZKaTFQbgKXPzx0xQLIzAyI2EBm5vg8mJPaJtKmx0BQ16jmwX4ge0Rz6lzINJ";
+        var key = "";
+        var secret = "";
         var bConnector = new BinanceConnector(key, secret);
 
         //  var dc = new DataConcentrator();
