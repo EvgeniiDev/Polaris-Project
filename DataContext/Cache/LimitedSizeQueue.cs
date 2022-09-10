@@ -1,5 +1,5 @@
 ﻿namespace DataStorage.Cache;
-
+//todo потокобезопасным сделать
 public class LimitedSizeQueue<T>
 {
     private LinkedList<T> list;

@@ -11,11 +11,11 @@ namespace ExchangeFaker
     //todo этой штуке нужно написать свой контроллер на коннектор к бирже, она не должна работать через евенты ядра
     //todo сейчас вирт биржа работает в режиме фьючерсной торговли, надо сделать так, чтоб была маркет торговля(тупо ввести общий баланс монет на аккаунт)
     //todo сейчас при тестовых прогонах стратегий нет никакой обратной связью между вирт биржей и стратегией, соответсвенно может оказаться так, что стратегия ещё не закончила свою работу, а вирт биржа уже обновилась на новые данные
-    public class ExchangeFaker
+    public class FakeExchange
     {
         public List<Account> accounts { get; private set; } = new();
         private readonly IExchange exchange;
-        public ExchangeFaker(IExchange exchange)
+        public FakeExchange(IExchange exchange)
         {
             this.exchange = exchange;
             EventsCatalog.NewCandle += EventsCatalog_NewCandle;
@@ -34,8 +34,6 @@ namespace ExchangeFaker
         private void EventsCatalog_NewCandle(NewCandleEvent obj)
         {
             //todo надо как-то по более умному эмулировать движение цены за этот промежуток
-
-            //todo исправить этот дибильный вариант получения данных, или понять что он нормальный и хорошо работает
             foreach (var acc in accounts.ToArray())
             {
                 acc.DataReceiver(obj);

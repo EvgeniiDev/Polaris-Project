@@ -32,7 +32,7 @@ public class CandleDataStorage : IDataStorage<CandleDBO>
     }
 
     [Time]
-    public void Write((string, string, TimeFrame) key, CandleDBO candle)
+    public void Write((string ExchangeName, string Pair, TimeFrame) key, CandleDBO candle)
     {
         using (ApplicationContext db = new ApplicationContext())
         {
@@ -45,7 +45,7 @@ public class CandleDataStorage : IDataStorage<CandleDBO>
     }
 
     [Time]
-    public void WriteWithOutCloseContext((string, string, TimeFrame) key, CandleDBO data)
+    public void WriteWithOutCloseContext((string ExchangeName, string Pair, TimeFrame) key, CandleDBO data)
     {
         _cache.GetOrAdd(key, _ => createQueueCache()).Add(data);
         lock (db)
@@ -56,7 +56,7 @@ public class CandleDataStorage : IDataStorage<CandleDBO>
     }
 
     [Time]
-    public CandleDBO Get((string, string, TimeFrame) key, long timeStamp)
+    public CandleDBO Get((string ExchangeName, string Pair, TimeFrame) key, long timeStamp)
     {
         if (_cache.ContainsKey(key))
         {
@@ -79,7 +79,7 @@ public class CandleDataStorage : IDataStorage<CandleDBO>
     }
 
     [Time]
-    public List<CandleDBO> GetRange((string, string, TimeFrame) key, long start, long end)
+    public List<CandleDBO> GetRange((string ExchangeName, string Pair, TimeFrame) key, long start, long end)
     {
         if (start > end)
             throw new ArgumentException();

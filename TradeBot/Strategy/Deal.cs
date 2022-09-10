@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DataTypes;
 
-namespace TradeBot.Strategy
+namespace TradeBot
 {
     public class Deal
     {

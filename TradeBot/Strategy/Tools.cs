@@ -4,7 +4,7 @@ using Core;
 using Core.Events;
 using DataTypes;
 
-namespace TradeBot.Strategy
+namespace TradeBot
 {
     public class Tools
     {

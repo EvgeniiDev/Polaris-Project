@@ -3,20 +3,21 @@ using System;
 using System.Collections.Concurrent;
 using Core.Data;
 using static DataTypes.TimeFrames;
+using ExchangeFaker;
 
-namespace TradeBot.Strategy
+namespace TradeBot
 {
     public static class StrategysManager
     {
         public static ConcurrentDictionary<Guid, Strategy> Strategys { get; private set; } = new();
-        private static ConcurrentDictionary<IExchange, ExchangeFaker.ExchangeFaker> exchangeFakers = new();
+        private static ConcurrentDictionary<IExchange, FakeExchange> exchangeFakers = new();
         private static ConcurrentDictionary<Guid, IExchange> connectors = new();
 
         public static Guid AddStrategy(Strategy strategy, IExchange connector)
         {
             //todo добавить обертку над IExchange, которая кеширует все свечи
             var id = Guid.NewGuid();
-            var fakeExchange = exchangeFakers.GetOrAdd(connector, new ExchangeFaker.ExchangeFaker(connector));
+            var fakeExchange = exchangeFakers.GetOrAdd(connector, new FakeExchange(connector));
             var acc = fakeExchange.CreateAccount(id.ToString(), "USD", 10000m);
 
             strategy.Account = acc;
@@ -29,18 +30,14 @@ namespace TradeBot.Strategy
         }
 
 
-        public static void RunStrategy(Guid guid, string[] pairs, TimeFrame[] timeFrames, DateTime startDate)
+        public static void RunStrategy(Guid guid, string pair, TimeFrame timeFrame, DateTime startDate)
         {
             //run dataSource
             var connector = connectors[guid];
-            foreach (var pair in pairs)
-                foreach (var timeFrame in timeFrames)
-                {
-                    DataConcentrator.RegisterDataSource(connector, typeof(ExchangeFaker.ExchangeFaker), pair, timeFrame, startDate);
-                    DataConcentrator.RunDataSource(typeof(ExchangeFaker.ExchangeFaker), pair, timeFrame);
-                }
-            //DataConcentrator.StartConcentrator();
-            Strategys[guid].Start(pairs, timeFrames);
+            DataConcentrator.RegisterDataSource(connector, typeof(FakeExchange), pair, timeFrame, startDate);
+            DataConcentrator.RunDataSource(typeof(FakeExchange), pair, timeFrame);
+
+            Strategys[guid].Start(pair, timeFrame);
         }
 
         //todo добавить метод на остановку стратегий

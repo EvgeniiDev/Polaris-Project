@@ -1,5 +1,5 @@
 ﻿using Core.Events.Objects;
-
+using System.Diagnostics;
 
 namespace Core.Events;
 
@@ -19,5 +19,11 @@ public static class EventsCatalog
     internal static void InvokePP(Dot arg) => PP(arg);
     internal static void InvokeSlom(Dot arg) => Slom(arg);
     internal static void InvokeMovingAverage(NewMovingAverageEvent arg) => MovingAverage?.Invoke(arg);
-    internal static void InvokeNewCandle(NewCandleEvent arg) => NewCandle?.Invoke(arg);
+    internal static void InvokeNewCandle(NewCandleEvent arg)
+    {
+       // var sw = Stopwatch.StartNew();
+        NewCandle?.Invoke(arg);
+        //Console.WriteLine(sw.ElapsedMilliseconds);
+      //  sw.Reset();
+    }
 }

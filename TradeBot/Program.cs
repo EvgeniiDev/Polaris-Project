@@ -1,36 +1,31 @@
 ﻿using System;
-using System.Threading.Tasks;
-using Binance.Net.Enums;
 using ExchangeConnectors.Connectors;
-using TradeBot.Strategy.Strategies;
 using Core.Data;
-using TradeBot.Strategy;
+using TradeBot.Strategies;
 using static DataTypes.TimeFrames;
 
 namespace TradeBot;
 
-static class Program
+public static class Program
 {
     public static void Main()
     {
-        var key = "";
-        var secret = "";
+        const string key = "UEmwbCVtgeRDa3By0d0lsyeh1l1vwSs15TPfLHH7pRmkymWAcOVEAHPxBCBiOYum";
+        const string secret = "OZFArrDVZK8y9XpT90RnO8UEUgBDteiobjKzFH4FvoGQusrypvvTnTsryGKZ7MjL";
+
+
         var bConnector = new BinanceConnector(key, secret);
-
-        //  var dc = new DataConcentrator();
-
 
         var strategy = new SimpleStrategy();
 
         var id = StrategysManager.AddStrategy(strategy, bConnector);
-        StrategysManager.RunStrategy(id, new[] { "BTCUSDT" }, new[] { TimeFrame.h1 }, new DateTime(2018, 1, 11));
+        StrategysManager.RunStrategy(id,
+            new[] { "BTCUSDT", "LTCUSDT" },
+            new[] { TimeFrame.h1 },
+            new DateTime(2018, 1, 11));
 
-        var aa = new DataSaver();
+        var dataSaver = new DataSaver();
 
-        Console.ReadKey();
-        Console.ReadKey();
-        Console.ReadKey();
-        Console.ReadKey();
         Console.ReadKey();
     }
 }

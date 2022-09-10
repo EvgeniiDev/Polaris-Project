@@ -5,7 +5,7 @@ using DataTypes;
 using ExchangeConnectors;
 using ExchangeFaker;
 
-namespace TradeBot
+namespace TradeBot.OneDealOneClass
 {
     public abstract class Strategy : IExchange
     {
@@ -13,6 +13,7 @@ namespace TradeBot
         public IExchange Connector;
         public Account Account;
         public string[] Pairs;
+        public bool Alive = true;   //если сделка завершена, то false, иначе true
 
         public virtual void Init()
         {
@@ -31,10 +32,57 @@ namespace TradeBot
             Init();
         }
 
+        private void OpenDeal(IExchange exchange, string pair, TimeFrames.TimeFrame tf, Func<Deal, bool> func)
+        {
+            throw new NotImplementedException();
+        }
+        
+        private void ChangeDeal(IExchange exchange, string pair, TimeFrames.TimeFrame tf, Func<Deal, bool> func)
+        {
+            throw new NotImplementedException();
+        }
+        
+        private void CloseDeal(IExchange exchange, string pair, TimeFrames.TimeFrame tf, Func<Deal, bool> func)
+        {
+            throw new NotImplementedException();
+        }
+
         public void IterationCompleted(string pair)
         {
             Account.NextPrice(pair);
         }
+
+        #region EventsPlug
+        public virtual void EventsCatalog_ReboundFromTheLevel(Core.Dot obj)
+        {
+            return;
+        }
+
+        public virtual void EventsCatalog_NewZigZag(Core.Events.Objects.NewZigZagEvent obj)
+        {
+            return;
+        }
+
+        public virtual void EventsCatalog_PP(Core.Dot obj)
+        {
+            return;
+        }
+
+        public virtual void EventsCatalog_NewAccumulation(Core.Accumulation obj)
+        {
+            return;
+        }
+
+        public virtual void EventsCatalog_MovingAverage(Core.Events.Objects.NewMovingAverageEvent obj)
+        {
+            return;
+        }
+
+        public virtual void EventsCatalog_NewCandle(Core.Events.Objects.NewCandleEvent obj)
+        {
+            return;
+        }
+        #endregion
 
         #region InterfaceMembers
         public Task<Dictionary<string, decimal>> GetPrices()

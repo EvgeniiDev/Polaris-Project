@@ -2,6 +2,7 @@
 using Core.Events.Objects;
 using DataTypes;
 using ExchangeConnectors;
+using System.Diagnostics;
 using static DataTypes.TimeFrames;
 
 namespace Core.Data;
@@ -43,7 +44,7 @@ public class DataWorker
         if (mode == Mode.Socket)
             _connector.SubscribeOnNewKlines(Pair, TimeFrame, NewCandleEventHandler);
         else if (mode == Mode.Requests)
-            Task.Run(()=>CheckNewData(1000));
+            Task.Run(() => CheckNewData(500));
 
         IsStarted = true;
     }
@@ -61,8 +62,9 @@ public class DataWorker
         Console.WriteLine("Стартую");
         while (IsStarted)
         {
+            // var sw = Stopwatch.StartNew();
             var lastCandleTime =
-                new DateTime(_time.Ticks, DateTimeKind.Utc).AddSeconds(candlesAmount * TimeFrame.GetSeconds()-1);
+                new DateTime(_time.Ticks, DateTimeKind.Utc).AddSeconds(candlesAmount * TimeFrame.GetSeconds() - 1);
             var lastCandles = _connector.GetCandles(Pair, TimeFrame, _time, lastCandleTime).Result;
 
             if (lastCandles.Count == 0)
@@ -70,16 +72,17 @@ public class DataWorker
 
             foreach (var candle in lastCandles)
             {
-                _time = (candle.TimeStamp+TimeFrame.GetSeconds()*1000).ToDateTime();
+                //todo NewCandleEventHandler обрабатывался в районе 30мс если не ожидать его завершения, то можно усеорить прогон стратегии
+                _time = (candle.TimeStamp + TimeFrame.GetSeconds() * 1000).ToDateTime();
                 NewCandleEventHandler(new Kline(candle.TimeStamp, TimeFrame, candle.Open,
                     candle.High, candle.Low, candle.Close));
             }
+
         }
     }
 
     private void NewCandleEventHandler(Kline candle)
     {
-        //Console.WriteLine($"{candle.TimeStamp} {candle.TimeFrame}");
         DataProcessing(candle);
     }
 
@@ -95,6 +98,7 @@ public class DataWorker
         };
         EventsCatalog.InvokeNewCandle(ev);
     }
+
     //todo сделать так чтоб этот метод работал
     public void Exit()
     {

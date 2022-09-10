@@ -21,7 +21,7 @@ namespace ExchangeFaker
         public ConcurrentDictionary<Guid, BaseDeal> Orders { get; private set; } = new();
         public ConcurrentDictionary<string, decimal> coinsAmount { get; private set; } = new();
 
-        private ConcurrentDictionary<string, Queue<NewCandleEvent>> candleQueue = new();
+        private ConcurrentDictionary<string, ConcurrentQueue<NewCandleEvent>> candleQueue = new();
 
 
         public Account(string name, string defaultCurrency, decimal startBalance)
@@ -116,9 +116,9 @@ namespace ExchangeFaker
         public void NextPrice(string pair)
         {
             //todo надо как-то по более умному эмулировать движение цены за этот промежуток
-            if (candleQueue.TryGetValue(pair, out var pairCandleQueue) && pairCandleQueue.Count > 0)
+            if (candleQueue.TryGetValue(pair, out var pairCandleQueue) &&
+                pairCandleQueue.TryDequeue(out var candle))
             {
-                var candle = pairCandleQueue.Dequeue();
                 foreach (var order in Orders.Values.Where(x => x.Status == Status.Open)
                                                     .Where(x => x.Pair == pair))
                 {
@@ -131,8 +131,8 @@ namespace ExchangeFaker
 
         internal void DataReceiver(NewCandleEvent candleEvent)
         {
-            var queue = candleQueue.GetOrAdd(candleEvent.Pair, new Queue<NewCandleEvent>());
-            queue.Enqueue(candleEvent);
+            candleQueue.GetOrAdd(candleEvent.Pair, new ConcurrentQueue<NewCandleEvent>())
+                        .Enqueue(candleEvent);
         }
     }
 }

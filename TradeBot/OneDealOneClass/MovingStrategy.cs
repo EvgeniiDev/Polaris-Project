@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Core;
 using Core.Algorithms.MA;
@@ -8,7 +7,7 @@ using Core.Events;
 using Core.Events.Objects;
 using DataTypes;
 
-namespace TradeBot.Strategies
+namespace TradeBot.OneDealOneClass
 {
     public class SimpleStrategy : Strategy
     {

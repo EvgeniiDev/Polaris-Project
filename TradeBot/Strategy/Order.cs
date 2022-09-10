@@ -1,7 +1,7 @@
 ﻿using System;
 using DataTypes;
 
-namespace TradeBot.Strategy
+namespace TradeBot
 {
     public class Order
     {
