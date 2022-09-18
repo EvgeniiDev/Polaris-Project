@@ -16,9 +16,9 @@ public class CandleDataStorage : IDataStorage<CandleDBO>
 
     public CandleDataStorage() : base()
     {
-        OpenApplicationContext();
-        db.Candles.RemoveRange(db.Candles);
-        db.SaveChanges();
+        OpenApplicationContext(); 
+        //db.Candles.RemoveRange(db.Candles);
+        //db.SaveChanges();
     }
 
     public void OpenApplicationContext()
@@ -37,9 +37,15 @@ public class CandleDataStorage : IDataStorage<CandleDBO>
         using (ApplicationContext db = new ApplicationContext())
         {
             _cache.GetOrAdd(key, _ => createQueueCache()).Add(candle);
-
             db.ChangeTracker.AutoDetectChangesEnabled = false;
-            db.Candles.Add(candle);
+            //Todo возможно медленно -> пофиксить
+            var currentCandle = db.Candles.Find(
+                candle.Pair,
+                candle.ExchangeName, 
+                candle.TimeFrame, 
+                candle.TimeStamp);
+            if (currentCandle == null)
+                db.Candles.Add(candle);
             db.SaveChanges();
         }
     }

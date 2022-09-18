@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DataTypes\DataTypes.csproj" />
+    <ProjectReference Include="..\ExchangeConnectors\ExchangeConnectors.csproj" />
     <ProjectReference Include="..\Log\Log.csproj" />
   </ItemGroup>
 

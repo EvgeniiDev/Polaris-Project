@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\TrueRealExchange\TrueRealExchange\ExchangeFaker.csproj" />
   </ItemGroup>
 
 </Project>
