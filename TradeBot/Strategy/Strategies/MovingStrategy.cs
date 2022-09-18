@@ -68,7 +68,7 @@ namespace TradeBot.Strategies
                     if (buyOrderId.Count < 3)
                     {
                         var res = CreateOrder(pair, OrderType.Long, lastCandle.Candle.High,
-                            100 / lastCandle.Candle.High);
+                            10 / lastCandle.Candle.High);
                         buyOrderId.Add(res.Result);
                     }
                 }
@@ -85,7 +85,7 @@ namespace TradeBot.Strategies
                     if (sellOrderId.Count < 3)
                     {
                         var res = CreateOrder(pair, OrderType.Short, lastCandle.Candle.High,
-                            100 / lastCandle.Candle.High);
+                            10 / lastCandle.Candle.High);
                         sellOrderId.Add(res.Result);
                     }
                 }

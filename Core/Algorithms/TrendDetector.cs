@@ -1,22 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
+using Core.Events;
 
 namespace Core
 {
-    class TrendDetector
+    public class TrendDetector
     {
-        public static event Action<Dot> PPDetected;
-        public static event Action<Dot> SlomDetected;
-
-        //public static event Action PPUpDetected;
-        //public static event Action SlomUpDetected;
-        //public static event Action PPDownDetected;
-        //public static event Action SlomDownDetected;
 
         public static List<Segment> TrendDetect(List<Dot> dots)
         {
-            if (dots.Count < 2)
-                throw new Exception("Мало данных");
+            if (dots.Count <= 2)
+                return new List<Segment>();// throw new Exception("Мало данных");
 
             var result = new List<Segment>();
             int lastPPNum = -1;
@@ -32,11 +25,11 @@ namespace Core
                 {
                     if (dots[n - 1].Price > dots[n - 3].Price)
                         lastPPNum = n - 2;
-                        //Console.WriteLine(dots[lastPPNum]);
+                    //Console.WriteLine(dots[lastPPNum]);
 
                     if (dots[n - 0].Price > dots[n - 2].Price && dots[n - 1].Price > dots[n - 3].Price)
                         lastSlomNum = n;
-                        //Console.WriteLine(dots[lastSlomNum]);
+                    //Console.WriteLine(dots[lastSlomNum]);
 
                     else if (dots[n - 2].Price > dots[n - 0].Price)
                     {
@@ -46,7 +39,11 @@ namespace Core
                             result.Add(new Segment(dots[lastPPNum].TimeStamp, dots[lastPPNum].Price,
                                                    dots[lastPPNum].TimeStamp + 500000000, dots[lastPPNum].Price));
 
-                            PPDetected(new Dot(dots[lastPPNum].TimeStamp, dots[lastPPNum].Price));
+                            EventsCatalog.InvokePP(new PP()
+                            {
+                                Dot = new Dot(dots[lastPPNum].TimeStamp, dots[lastPPNum].Price),
+                                Trend = Trend.Down
+                            });
                             //PPDownDetected();
                         }
 
@@ -55,7 +52,11 @@ namespace Core
                             result.Add(new Segment(dots[lastSlomNum].TimeStamp, dots[lastSlomNum].Price,
                                                    dots[lastSlomNum].TimeStamp + 500000000, dots[lastSlomNum].Price));
 
-                            SlomDetected(new Dot(dots[lastSlomNum].TimeStamp, dots[lastSlomNum].Price));
+                            EventsCatalog.InvokeSlom(new PP()
+                            {
+                                Dot = new Dot(dots[lastSlomNum].TimeStamp, dots[lastSlomNum].Price),
+                                Trend = Trend.Down
+                            });
                             //SlomDownDetected();
                             //Console.WriteLine($"Слом в short {lastSlom}");
                         }
@@ -68,7 +69,7 @@ namespace Core
                 {
                     if (dots[n - 1].Price < dots[n - 3].Price)
                         lastPPNum = n - 2;
-                        //Console.WriteLine(dots[lastPPNum]);
+                    //Console.WriteLine(dots[lastPPNum]);
 
                     if (dots[n - 0].Price < dots[n - 2].Price && dots[n - 1].Price < dots[n - 3].Price)
                         lastSlomNum = n;
@@ -81,7 +82,11 @@ namespace Core
                             result.Add(new Segment(dots[lastPPNum].TimeStamp, dots[lastPPNum].Price,
                                                    dots[lastPPNum].TimeStamp + 500000000, dots[lastPPNum].Price));
 
-                            PPDetected(new Dot(dots[lastPPNum].TimeStamp, dots[lastPPNum].Price));
+                            EventsCatalog.InvokePP(new PP()
+                            {
+                                Dot = new Dot(dots[lastPPNum].TimeStamp, dots[lastPPNum].Price),
+                                Trend = Trend.Up
+                            });
                             //PPUpDetected();
                         }
                         if (lastSlomNum != -1)
@@ -89,7 +94,11 @@ namespace Core
                             result.Add(new Segment(dots[lastSlomNum].TimeStamp, dots[lastSlomNum].Price,
                                                    dots[lastSlomNum].TimeStamp + 500000000, dots[lastSlomNum].Price));
 
-                            SlomDetected(new Dot(dots[lastSlomNum].TimeStamp, dots[lastSlomNum].Price));
+                            EventsCatalog.InvokeSlom(new PP()
+                            {
+                                Dot = new Dot(dots[lastSlomNum].TimeStamp, dots[lastSlomNum].Price),
+                                Trend = Trend.Up
+                            });
                             //SlomUpDetected();
                         }
                         currentTrend = Trend.Up;
@@ -133,11 +142,17 @@ namespace Core
             //}
             return result;
         }
-        public enum Trend
-        {
-            Down,
-            Up,
-            Side
-        }
+
+    }
+    public class PP
+    {
+        public Trend Trend;
+        public Dot Dot;
+    }
+    public enum Trend
+    {
+        Down,
+        Up,
+        Side
     }
 }

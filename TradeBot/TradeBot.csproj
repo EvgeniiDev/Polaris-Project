@@ -6,6 +6,7 @@
     <AssemblyName>TradeBot</AssemblyName>
     <RootNamespace>TradeBot</RootNamespace>
     <IsPublishable>False</IsPublishable>
+    <UserSecretsId>93bcb0af-f3ed-41a6-9e57-abcdb674f9a4</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,6 +27,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="5.0.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.5" />
     <PackageReference Include="SuperSocket.WebSocket.Server" Version="2.0.0-beta.10" />
     <PackageReference Include="System.Collections" Version="4.3.0" />

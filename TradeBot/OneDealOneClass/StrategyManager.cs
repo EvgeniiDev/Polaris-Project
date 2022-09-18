@@ -42,7 +42,7 @@ namespace TradeBot.OneDealOneClass
             throw new NotImplementedException();
         }
 
-        private void EventsCatalog_PP(Core.Dot obj)
+        private void EventsCatalog_PP(Core.PP obj)
         {
             throw new NotImplementedException();
         }
@@ -59,11 +59,11 @@ namespace TradeBot.OneDealOneClass
 
         private void EventsCatalog_NewCandle(Core.Events.Objects.NewCandleEvent obj)
         {
-            foreach(var strategy in StrategysEvents[typeof(obj)])
-            {
-                strategy.EmitEvent();
+           // foreach(var strategy in StrategysEvents[typeof(obj)])
+           // {
+            //    strategy.EmitEvent();
                 //выглядит как дерьмо , ведь для каждого эвента нужен свой метод
-            }
+           // }
         }
 
         public static Guid AddStrategy(Strategy strategy, IExchange connector)
@@ -90,7 +90,7 @@ namespace TradeBot.OneDealOneClass
             DataConcentrator.RegisterDataSource(connector, typeof(FakeExchange), pair, timeFrame, startDate);
             DataConcentrator.RunDataSource(typeof(FakeExchange), pair, timeFrame);
 
-            Strategys[guid].Start(pair, timeFrame);
+            Strategys[guid].Start(new[] { pair }, new[] { timeFrame });
         }
 
         //todo добавить метод на остановку стратегий

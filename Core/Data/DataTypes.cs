@@ -106,7 +106,7 @@ namespace Core
     //        "legend": false
     //    }
     //}
-    internal class Segment
+    public class Segment
     {
         public Dot FirstDot = new Dot(0, 0);
         public Dot SecondDot = new Dot(0, 0);

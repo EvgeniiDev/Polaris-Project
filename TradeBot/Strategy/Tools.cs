@@ -12,9 +12,9 @@ namespace TradeBot
 
         Tools()
         {
-            EventsCatalog.PP += (Dot dot) => EventHandler(dot);
+        //    EventsCatalog.PP += (Dot dot) => EventHandler(dot);
           //  EventsCatalog.ReboundFromTheLevel += (Dot dot) => EventHandler(dot);
-            EventsCatalog.Slom += (Dot dot) => EventHandler(dot);
+          //  EventsCatalog.Slom += (Dot dot) => EventHandler(dot);
         }
 
         public IEnumerable<Deal> GetDeals()

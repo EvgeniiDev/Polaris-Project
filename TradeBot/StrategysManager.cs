@@ -37,7 +37,7 @@ namespace TradeBot
             DataConcentrator.RegisterDataSource(connector, typeof(FakeExchange), pair, timeFrame, startDate);
             DataConcentrator.RunDataSource(typeof(FakeExchange), pair, timeFrame);
 
-            Strategys[guid].Start(pair, timeFrame);
+            Strategys[guid].Start(new[] { pair }, new[] { timeFrame });
         }
 
         //todo добавить метод на остановку стратегий

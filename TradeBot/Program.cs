@@ -16,12 +16,12 @@ public static class Program
 
         var bConnector = new BinanceConnector(key, secret);
 
-        var strategy = new SimpleStrategy();
+        var strategy = new PPStrategy();
 
         var id = StrategysManager.AddStrategy(strategy, bConnector);
         StrategysManager.RunStrategy(id,
-            new[] { "BTCUSDT", "LTCUSDT" },
-            new[] { TimeFrame.h1 },
+            "BTCUSDT",
+            TimeFrame.h1 ,
             new DateTime(2018, 1, 11));
 
         var dataSaver = new DataSaver();

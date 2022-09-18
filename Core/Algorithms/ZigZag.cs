@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using DataTypes;
 
 namespace Core.Algorithms;
 
-public static class ZigZag
+public class ZigZag
 {
     public static List<Dot> CalculatePriceStructLight(List<Candle> candles, float deviationInPercent)
     {
