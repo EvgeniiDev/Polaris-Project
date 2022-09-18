@@ -43,7 +43,7 @@ public class DataWorker
         if (mode == Mode.Socket)
             _connector.SubscribeOnNewKlines(Pair, TimeFrame, NewCandleEventHandler);
         else if (mode == Mode.Requests)
-            Task.Run(()=>CheckNewData(2));
+            Task.Run(()=>CheckNewData(1000));
 
         IsStarted = true;
     }

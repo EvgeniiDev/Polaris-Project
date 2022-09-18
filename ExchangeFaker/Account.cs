@@ -5,6 +5,7 @@ using System.Linq;
 using ExchangeFaker.Orders;
 using Log;
 using System.Collections.Concurrent;
+using Core.Events.Objects;
 
 namespace ExchangeFaker
 {
@@ -19,6 +20,9 @@ namespace ExchangeFaker
         public List<decimal> BalanceHistory { get; private set; } = new();
         public ConcurrentDictionary<Guid, BaseDeal> Orders { get; private set; } = new();
         public ConcurrentDictionary<string, decimal> coinsAmount { get; private set; } = new();
+
+        private ConcurrentDictionary<string, Queue<NewCandleEvent>> candleQueue = new();
+
 
         public Account(string name, string defaultCurrency, decimal startBalance)
         {
@@ -48,22 +52,10 @@ namespace ExchangeFaker
             BaseDeal order = orderType == OrderType.Long ?
                                 new FuturesDealLong(this, pair, prices, leverage, takes, stops)
                               : new FuturesDealShort(this, pair, prices, leverage, takes, stops);
-            var guid = Guid.NewGuid();
 
+            var guid = Guid.NewGuid();
             Orders.TryAdd(guid, order);
 
-            if (orderType == OrderType.Long)
-            {
-                counter += prices.Sum(x => x.Amount);
-                lon++;
-            }
-            else if (orderType == OrderType.Short)
-            {
-                counter -= prices.Sum(x => x.Amount);
-                shor++;
-            }
-
-            Console.WriteLine($"{counter} {lon} {shor}");
             return guid;
         }
 
@@ -121,13 +113,26 @@ namespace ExchangeFaker
             // throw new NotImplementedException();
         }
 
-        internal void DataReceiver(Dictionary<string, decimal> prices)
+        public void NextPrice(string pair)
         {
-            var openedOrders = Orders.Values.Where(x => x.Status == Status.Open);
+            //todo надо как-то по более умному эмулировать движение цены за этот промежуток
+            if (candleQueue.TryGetValue(pair, out var pairCandleQueue) && pairCandleQueue.Count > 0)
+            {
+                var candle = pairCandleQueue.Dequeue();
+                foreach (var order in Orders.Values.Where(x => x.Status == Status.Open)
+                                                    .Where(x => x.Pair == pair))
+                {
+                    //todo подумать а ничего ли страшного нет в том, что сначала лоу цена отправляется а потом хай
+                    order.UpdateStatusOfOrder(candle.Candle.Low);
+                    order.UpdateStatusOfOrder(candle.Candle.High);
+                }
+            }
+        }
 
-            foreach (var price in prices)
-                foreach (var order in openedOrders.Where(x => x.Pair == price.Key))
-                    order.UpdateStatusOfOrder(price.Value);
+        internal void DataReceiver(NewCandleEvent candleEvent)
+        {
+            var queue = candleQueue.GetOrAdd(candleEvent.Pair, new Queue<NewCandleEvent>());
+            queue.Enqueue(candleEvent);
         }
     }
 }

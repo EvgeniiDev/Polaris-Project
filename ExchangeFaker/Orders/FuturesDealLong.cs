@@ -17,7 +17,7 @@ namespace ExchangeFaker.Orders
             AveragePrice = (AveragePrice * Amount + amount * deal.Price) / (Amount + amount);
             Amount += amount;
             Balance -= amount * deal.Price;
-            Console.WriteLine(Balance);
+
             var totalSpend = Math.Abs(AveragePrice * Amount);
 
             if (Math.Abs(Amount) < 0.00001m)

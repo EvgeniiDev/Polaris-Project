@@ -79,7 +79,6 @@ namespace ExchangeFaker.Orders
             if (leverage < 1)
                 throw new Exception("Leverage should be more when 1");
             if (owner.Amount * leverage < entry.Select(x => x.Amount * x.Price).Sum())
-                throw new Exception("No money");
 
             Leverage = leverage;
             LiquidationPrice = decimal.MaxValue;
