@@ -15,8 +15,8 @@ public class ZigZagDataStorage : IDataStorage<ZigZagDBO>
     public ZigZagDataStorage() : base()
     {
         OpenApplicationContext();
-        db.ZigZag.RemoveRange(db.ZigZag);
-        db.SaveChanges();
+        //db.ZigZag.RemoveRange(db.ZigZag);
+        //db.SaveChanges();
     }
 
     public void OpenApplicationContext()
@@ -35,9 +35,15 @@ public class ZigZagDataStorage : IDataStorage<ZigZagDBO>
         using (ApplicationContext db = new ApplicationContext())
         {
             _cache.GetOrAdd(key, _ => createQueueCache()).Add(data);
-
             db.ChangeTracker.AutoDetectChangesEnabled = false;
-            db.ZigZag.Add(data);
+            // todo аналогично CandelDataStorage.cs
+            var currentCandle = db.ZigZag.Find(
+                data.Pair,
+                data.ExchangeName, 
+                data.TimeFrame, 
+                data.TimeStamp);
+            if (currentCandle == null)
+                db.ZigZag.Add(data);
             db.SaveChanges();
         }
     }
